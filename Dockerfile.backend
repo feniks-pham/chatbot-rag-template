@@ -1,0 +1,43 @@
+# Use Python 3.13 slim image
+FROM python:3.13-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first to leverage Docker cache
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY app/ app/
+COPY main.py .
+COPY scripts/ scripts/
+
+# Create logs directory
+RUN mkdir -p /app/logs && chmod 777 /app/logs
+
+# Create data directory and copy Excel file for dev environment
+RUN mkdir -p /app/data
+COPY data/trung-nguyen-legend.xlsx /app/data/
+
+# Expose port
+EXPOSE 8000
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+
+# Make startup script executable
+RUN chmod +x /app/scripts/startup.sh
+
+# Run the startup script
+CMD ["/app/scripts/startup.sh"] 

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: trung-nguyen-backend
+spec:
+  type: LoadBalancer
+  selector:
+    app: trung-nguyen-backend
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+  sessionAffinity: ClientIP  # Sticky session
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800  # 3 hours

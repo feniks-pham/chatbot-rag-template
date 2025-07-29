@@ -1,0 +1,19 @@
+
+__pycache__/
+
+# Virtual Environment
+.venv/
+env/
+venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Project specific
+volume/
+*.log
+.env
+/wheels/

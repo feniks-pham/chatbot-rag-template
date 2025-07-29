@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trung-nguyen-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: trung-nguyen-backend
+  template:
+    metadata:
+      labels:
+        app: trung-nguyen-backend
+    spec:
+      containers:
+        - name: backend
+          image: vcr.vngcloud.vn/60108-chatbot-rag/trung-nguyen-backend:1.0.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: trung-nguyen-backend-config
+            - secretRef:
+                name: trung-nguyen-backend-secret
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          volumeMounts:
+            - name: logs
+              mountPath: /app/logs
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: logs
+          emptyDir: {}
