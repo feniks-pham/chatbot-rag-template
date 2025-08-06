@@ -61,7 +61,7 @@ async def text_to_speech(request: TTSRequest):
             audio_file,
             media_type="audio/mpeg",
             headers={"Content-Disposition": f"attachment; filename={os.path.basename(audio_file)}"},
-            # background=cleanup_file
+            background=cleanup_file
         )
         
     except Exception as e:
