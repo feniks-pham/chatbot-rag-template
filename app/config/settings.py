@@ -1,13 +1,22 @@
 import os
 from pydantic_settings import BaseSettings
+from pydantic import field_validator
 
 
 class Settings(BaseSettings):
     # Environment
     app_env: str = "dev"  # dev or prod
+    database: str = "opensearch" # postgres or opensearch
     
-    # Database
+    # Database (postgres)
     database_url: str
+
+    # Database (opensearch)
+    opensearch_host: str
+    opensearch_port: str
+    opensearch_user: str
+    opensearch_initial_admin_password: str
+    opensearch_url: str
     
     # S3 (only for prod)
     s3_path: str = ""
@@ -32,6 +41,18 @@ class Settings(BaseSettings):
     tts_speed: float = 1.0
     tts_encode_type: int = 1
 
+    # Gemini TTS
+    gemini_tts_api_url: str
+    gemini_tts_api_key: str
+    gemini_tts_voice_language_code: str = "vi-VN"
+    gemini_tts_voice_name: str = "vi-VN-Standard-C"
+    gemini_tts_audio_encoding: str = "MP3"
+    gemini_tts_speaking_rate: float = 1.0
+    gemini_tts_pitch: float = 0.0
+    gemini_tts_sample_rate_hertz: int = 24000
+
+    gemini_api_key: str
+
     # Embedding
     embedding_api_url: str
     embedding_api_key: str
@@ -52,6 +73,14 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = False
+
+    @field_validator("database")
+    @classmethod
+    def validate_database(cls, value):
+        allowed = {"postgres", "opensearch"}
+        if value.lower() not in allowed:
+            raise ValueError(f"Invalid database: {value}. Must be one of {allowed}")
+        return value.lower()
     
     @property
     def is_dev(self) -> bool:
@@ -62,6 +91,16 @@ class Settings(BaseSettings):
     def is_prod(self) -> bool:
         """Check if running in production environment"""
         return self.app_env.lower() == "prod"
+    
+    @property
+    def is_postgres(self) -> bool:
+        """Check if using postgres database"""
+        return self.database.lower() == "postgres"
+    
+    @property
+    def is_opensearch(self) -> bool:
+        """Check if using opensearch database"""
+        return self.database.lower() == "opensearch"
     
     def model_post_init(self, __context) -> None:
         """Validate environment-specific configurations"""

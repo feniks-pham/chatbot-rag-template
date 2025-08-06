@@ -1,3 +1,4 @@
+
 import base64
 import json
 from typing import Dict, List, Any
@@ -81,8 +82,11 @@ def get_chat_history(session_id: str) -> List[Dict]:
 def text_to_speech(text: str) -> str | None:
     """Convert text to speech using TTS API and return base64 encoded audio data"""
     try:
+        tts_choice = st.session_state.get("tts_provider", "Zalo")
+        tts_endpoint = "/v1/tts-zalo" if tts_choice == "Zalo" else "/v1/tts-gemini"
+
         response = requests.post(
-            f"{API_BASE_URL}/v1/tts",
+            f"{API_BASE_URL}{tts_endpoint}",
             json={"text": text}
         )
         response.raise_for_status()
@@ -117,15 +121,16 @@ def play_audio(content: str, button_key: str) -> None:
         content, button_key = st.session_state.current_audio
         st.session_state.current_audio = None  # Clear the scheduled audio
         
-        # Try to get from cache first
-        audio_base64 = st.session_state.audio_cache.get(content)
+        # # Try to get from cache first
+        # audio_base64 = st.session_state.audio_cache.get(content)
         
-        # If not in cache, generate new audio
-        if not audio_base64:
-            audio_base64 = text_to_speech(content)
-            if audio_base64:
-                # Cache the audio
-                st.session_state.audio_cache[content] = audio_base64
+        # # If not in cache, generate new audio
+        # if not audio_base64:
+        #     audio_base64 = text_to_speech(content)
+        #     if audio_base64:
+        #         # Cache the audio
+        #         st.session_state.audio_cache[content] = audio_base64
+        audio_base64 = text_to_speech(content)
         
         # Play audio if available
         if audio_base64:
@@ -261,10 +266,23 @@ def main():
         - ☕ Sản phẩm và giá cả
         
         """)
+
+        if "tts_provider" not in st.session_state:
+            st.session_state.tts_provider = "Zalo"
+
+        if "use_streaming" not in st.session_state:
+            st.session_state.use_streaming = True
+
+        # Choose TTS provider (default is Zalo)
+        st.radio(
+            "Chọn TTS Provider:",
+            options=["Zalo", "Gemini"],
+            key="tts_provider"
+        )
+        st.write("Provider đang chọn:", st.session_state.tts_provider)
         
         # Toggle streaming mode
-        use_streaming = st.checkbox("Sử dụng Streaming", value=True)
-        st.session_state.use_streaming = use_streaming
+        st.checkbox("Sử dụng Streaming", key="use_streaming")
         
         if st.button("Tạo phiên mới"):
             st.session_state.session_id = create_session()

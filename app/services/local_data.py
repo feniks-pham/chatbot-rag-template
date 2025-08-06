@@ -1,3 +1,6 @@
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import pandas as pd
 from typing import List, Dict
 from app.config.settings import settings
@@ -7,16 +10,15 @@ logger = get_logger(__name__)
 
 class LocalDataService:
     def __init__(self):
-        self.data_file = settings.local_data_file
-        logger.info(f"LocalDataService initialized with file: {self.data_file}")
+        logger.info(f"LocalDataService initialized with file in data folder")
     
-    async def load_qa_data(self) -> List[Dict[str, str]]:
+    async def load_qa_data(self, data_file) -> List[Dict[str, str]]:
         """Load Q&A data from local Excel file"""
         try:
-            logger.info(f"Loading Q&A data from local file: {self.data_file}")
+            logger.info(f"Loading Q&A data from local file: {data_file}")
             
             # Read Excel file
-            excel_data = pd.read_excel(self.data_file)
+            excel_data = pd.read_excel(data_file)
             
             logger.info(f"Excel file loaded with {len(excel_data)} rows")
             
@@ -33,8 +35,8 @@ class LocalDataService:
             return qa_data
             
         except FileNotFoundError:
-            logger.error(f"Local data file not found: {self.data_file}")
-            raise Exception(f"Local data file not found: {self.data_file}")
+            logger.error(f"Local data file not found: {data_file}")
+            raise Exception(f"Local data file not found: {data_file}")
         except Exception as e:
             logger.error(f"Error loading Q&A data from local file: {str(e)}")
             raise Exception(f"Failed to load Q&A data from local file: {str(e)}")

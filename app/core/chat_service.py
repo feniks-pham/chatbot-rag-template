@@ -1,8 +1,13 @@
 from typing import List, Dict
+import yaml
+import os
 
 from langchain.prompts import ChatPromptTemplate
 from langchain_postgres import PGVector
+from langchain_community.vectorstores import OpenSearchVectorSearch
 from sqlalchemy.orm import Session
+from opensearchpy import OpenSearch
+from datetime import datetime
 
 from app.config.settings import settings
 from app.models.database import ChatHistory
@@ -10,96 +15,56 @@ from app.services.crawler import crawl_service
 from app.services.embeddings import CustomEmbeddings
 from app.services.llm import LLMService
 from app.utils.logger import get_logger
+from app.utils.load_intents import load_intents, load_prompt_template
 
 logger = get_logger(__name__)
-
+    
 class ResponseGenerator:
-    def __init__(self, llm_service: LLMService, embeddings: CustomEmbeddings, vector_store: PGVector):
+    def __init__(self, llm_service: LLMService, embeddings: CustomEmbeddings, vector_store):
         self.llm_service = llm_service
         self.embeddings = embeddings
         self.vector_store = vector_store
+        self.intent = load_intents()
+        self.prompts = {}
         
         # Different prompt templates for each intent
-        self.zen_cafe_prompt = ChatPromptTemplate.from_messages([
-            ("system", """Bạn là một chuyên gia về triết lý và văn hóa cà phê Trung Nguyên Legend.
-Hãy trả lời câu hỏi dựa trên thông tin được cung cấp về thiền cà phê và triết lý Trung Nguyên.
-Giữ nguyên các nội dung trích dẫn nhưng loại bỏ toàn bộ phần ghi chú tài liệu tham khảo ở cuối câu (ví dụ như: (Thiền Cà Phê Cốt Lõi_Song ngữ Việt Anh_Tài liệu đào tạo (update 21.03.2025))).
-Loại bỏ câu này (—This answer was inspired by Coffee Dharma and Trung Nguyên Legend AI—) nếu có trong câu trả lời.
-Nếu không có thông tin liên quan trong context, hãy trả lời: "Xin lỗi, tôi không có thông tin về câu hỏi này."
-
-Thông tin tham khảo:
-{context}
-
-Lịch sử hội thoại:
-{history}"""),
-            ("user", "{query}")
-        ])
-        
-        self.location_prompt = ChatPromptTemplate.from_messages([
-            ("system", """Bạn là trợ lý hỗ trợ thông tin về địa điểm tổ chức cũng như cách thức đăng ký(đặt vé) trải nghiệm Thiền Cà Phê của Trung Nguyên Legend.
-Hãy trả lời câu hỏi dựa trên thông tin địa chỉ tổ chức, cách thức đặt vé được được cung cấp.
-Trả lời một cách chính xác, chi tiết và hữu ích.
-
-Thông tin cửa hàng:
-{context}
-
-Lịch sử hội thoại:
-{history}"""),
-            ("user", "{query}")
-        ])
-        
-        self.product_prompt = ChatPromptTemplate.from_messages([
-            ("system", """Bạn là tư vấn viên sản phẩm của Trung Nguyên Legend.
-Hãy trả lời câu hỏi về sản phẩm, giá cả, menu dựa trên thông tin được cung cấp.
-Trả lời một cách nhiệt tình, chi tiết và hữu ích như một nhân viên bán hàng chuyên nghiệp.
-
-Thông tin sản phẩm:
-{context}
-
-Lịch sử hội thoại:
-{history}"""),
-            ("user", "{query}")
-        ])
-        
-        self.philosophy_prompt = ChatPromptTemplate.from_messages([
-            ("system", """Bạn là chuyên gia về Cà Phê Triết Đạo và khía cạnh giao hoà Đông Tây trong cà phê của Trung Nguyên Legend.
-Khi người dùng hỏi về Cà Phê Triết Đạo, khía cạnh giao hoà Đông Tây, hoặc video về chủ đề này, luôn trả lời:
-
-"Dưới đây là video với chủ đề 'CÀ PHÊ TRIẾT ĐẠO | Cà phê và những ý niệm giao hòa Đông – Tây' mà bạn quan tâm:
-
-Lịch sử hội thoại:
-{history}"""),
-            ("user", "{query}")
-        ])
+        for intent, config in self.intent.items():
+            prompt_text = load_prompt_template(config["prompt_file"])
+            self.prompts[intent] = ChatPromptTemplate.from_messages([
+                ("system", prompt_text),
+                ("user", "{query}")
+            ])
     
     async def generate_response(self, query: str, intent: str, history: List[Dict[str, str]]) -> str:
         """Generate response based on intent and context"""
         logger.info(f"Generating response for intent: {intent}, query: {query[:50]}...")
+        config = self.intent.get(intent)
+        if not config:
+            logger.warning(f"Unknown intent: {intent}, defaulting to zen_cafe")
+            intent = "zen_cafe"
+            config = self.intent[intent]
         try:
-            if intent == "zen_cafe":
-                logger.info("Processing zen_cafe intent - getting vector context")
+            prompt = self.prompts[intent]
+            data_type = config["data_source"]["type"]
+            if data_type == "vector_db":
+                logger.info(f"Processing {intent} intent - getting vector context")
                 context = self._get_vector_context(query)
-                prompt = self.zen_cafe_prompt
                 logger.info(f"Retrieved vector context length: {len(context)}")
-            elif intent == "location":
-                logger.info("Processing location intent - crawling stores")
-                context = await crawl_service.crawl_stores()
-                prompt = self.location_prompt
-                logger.info(f"Crawled stores context length: {len(context)}")
-            elif intent == "product":
-                logger.info("Processing product intent - crawling products")
-                context = await crawl_service.crawl_products()
-                prompt = self.product_prompt
-                logger.info(f"Crawled products context length: {len(context)}")
-            elif intent == "philosophy":
-                logger.info("Processing philosophy intent - returning fixed video response")
-                context = ""  # No context needed for philosophy
-                prompt = self.philosophy_prompt
-                logger.info("Using fixed video response for philosophy intent")
+            elif data_type == "crawl":
+                logger.info(f"Processing {intent} intent - crawling {intent} web")
+                url = config["data_source"]["web_url"]
+                if not url:
+                    logger.error(f"No corresponding web url for {intent} intent")
+                    raise ValueError(f"No corresponding web url for {intent} intent")
+                context = await crawl_service.crawl_web(url=url)
+                logger.info(f"Crawled {intent} web context length: {len(context)}")
+            elif data_type == "fixed":
+                logger.info(f"Processing {intent} intent - returning fixed content response")
+                context = config["data_source"].get("context", "")  
+                logger.info(f"Using fixed video response for {intent} intent")
             else:
-                logger.warning(f"Unknown intent: {intent}, defaulting to zen_cafe")
-                context = self._get_vector_context(query)
-                prompt = self.zen_cafe_prompt
+                logger.error(f"Unknown data source type: {data_type}")
+                raise ValueError(f"Unknown data source type: {data_type}")
             
             # Format history
             history_text = ""
@@ -129,32 +94,33 @@ Lịch sử hội thoại:
     async def generate_streaming_response(self, query: str, intent: str, history: List[Dict[str, str]]):
         """Generate streaming response based on intent and context"""
         logger.info(f"Generating streaming response for intent: {intent}, query: {query[:50]}...")
+        config = self.intent.get(intent)
+        if not config:
+            logger.warning(f"Unknown intent: {intent}, defaulting to zen_cafe")
+            intent = "zen_cafe"
+            config = self.intent[intent]
         try:
-            if intent == "zen_cafe":
-                logger.info("Processing zen_cafe intent - getting vector context")
+            prompt = self.prompts[intent]
+            data_type = config["data_source"]["type"]
+            if data_type == "vector_db":
+                logger.info(f"Processing {intent} intent - getting vector context")
                 context = self._get_vector_context(query)
-                prompt = self.zen_cafe_prompt
                 logger.info(f"Retrieved vector context length: {len(context)}")
-            elif intent == "location":
-                logger.info("Processing location intent - crawling stores")
-                context = await crawl_service.crawl_stores()
-                prompt = self.location_prompt
-                logger.info(f"Crawled stores context length: {len(context)}")
-            elif intent == "product":
-                logger.info("Processing product intent - crawling products")
-                context = await crawl_service.crawl_products()
-                prompt = self.product_prompt
-                logger.info(f"Crawled products context length: {len(context)}")
-            elif intent == "philosophy":
-                logger.info("Processing philosophy intent - returning fixed video response")
-                # For philosophy intent, we deliver a single fixed response without streaming
-                response = "Dưới đây là video với chủ đề \"CÀ PHÊ TRIẾT ĐẠO | Cà phê và những ý niệm giao hòa Đông – Tây\" mà bạn quan tâm:\n"
-                yield response
-                return
+            elif data_type == "crawl":
+                logger.info(f"Processing {intent} intent - crawling {intent} web")
+                url = config["data_source"]["web_url"]
+                if not url:
+                    logger.error(f"No corresponding web url for {intent} intent")
+                    raise ValueError(f"No corresponding web url for {intent} intent")
+                context = await crawl_service.crawl_web(url=url)
+                logger.info(f"Crawled {intent} web context length: {len(context)}")
+            elif data_type == "fixed":
+                logger.info(f"Processing {intent} intent - returning fixed content response")
+                context = config["data_source"].get("context", "") 
+                logger.info(f"Using fixed video response for {intent} intent")
             else:
-                logger.warning(f"Unknown intent: {intent}, defaulting to zen_cafe")
-                context = self._get_vector_context(query)
-                prompt = self.zen_cafe_prompt
+                logger.error(f"Unknown data source type: {data_type}")
+                raise ValueError(f"Unknown data source type: {data_type}")
             
             # Format history
             history_text = ""
@@ -209,17 +175,25 @@ class ChatService:
         self.vector_store = None
         self.response_generator = None
     
-    def initialize_vector_store(self):
+    def initialize_vector_store(self, intent):
         """Initialize vector store - called during startup"""
         logger.info("Initializing vector store...")
         if self.vector_store is None:
             try:
-                self.vector_store = PGVector(
-                    embeddings=self.embeddings,
-                    connection=settings.database_url,
-                    collection_name="qa_embeddings",
-                    use_jsonb=True,
-                )
+                if settings.is_postgres:
+                    self.vector_store = PGVector(
+                        embeddings=self.embeddings,
+                        connection=settings.database_url,
+                        collection_name=intent,
+                        use_jsonb=True,
+                    )
+                else:
+                    self.vector_store = OpenSearchVectorSearch(
+                        opensearch_url=settings.opensearch_url,
+                        index_name=intent,
+                        embedding_function=self.embeddings,
+                        verify_certs=False
+                    )
                 self.response_generator = ResponseGenerator(
                     self.llm_service, 
                     self.embeddings, 
@@ -252,6 +226,36 @@ class ChatService:
         except Exception as e:
             logger.error(f"Error getting chat history for session {session_id}: {e}", exc_info=True)
             return []
+        
+    def get_opensearch_chat_history(self, client: OpenSearch, session_id: str) -> List[Dict[str, str]]:
+        logger.info(f"Getting chat history from OpenSearch for session: {session_id}")
+        try:
+            response = client.search(
+                index="chat_history",
+                body={
+                    "size": 10,
+                    "sort": [{"created_at": {"order": "desc"}}],
+                    "query": {
+                        "term": {
+                            "session_id": session_id  # dùng keyword nếu cần exact match
+                        }
+                    }
+                }
+            )
+            
+            hits = response["hits"]["hits"]
+            result = [
+                {
+                    "role": "user" if doc["_source"]["message_type"] == "user" else "assistant",
+                    "content": doc["_source"]["content"]
+                }
+                for doc in reversed(hits)  # reverse để giống order_by(created_at asc)
+            ]
+            logger.info(f"Retrieved {len(result)} messages from OpenSearch for session {session_id}")
+            return result
+        except Exception as e:
+            logger.error(f"Error fetching OpenSearch chat history for session {session_id}: {e}", exc_info=True)
+            return []
     
     def save_message(self, db: Session, session_id: str, message_type: str, content: str, intent: str = None):
         """Save message to chat history"""
@@ -269,6 +273,24 @@ class ChatService:
         except Exception as e:
             logger.error(f"Error saving message for session {session_id}: {e}", exc_info=True)
             db.rollback()
+            raise
+
+    def opensearch_save_message(self, client: OpenSearch, session_id: str, message_type: str, content: str, intent: str = None):
+        """Save a message to OpenSearch chat history"""
+        logger.info(f"Saving {message_type} message to OpenSearch for session {session_id}, intent: {intent}")
+        try:
+            message_doc = {
+                "session_id": session_id,
+                "message_type": message_type,
+                "content": content,
+                "intent": intent,
+                "created_at": datetime.now().strftime("%Y%m%d")
+            }
+
+            client.index(index="chat_history", body=message_doc)
+            logger.info(f"Successfully saved {message_type} message for session {session_id} in OpenSearch")
+        except Exception as e:
+            logger.error(f"Error saving message for session {session_id} to OpenSearch: {e}", exc_info=True)
             raise
 
 # Global chat service instance

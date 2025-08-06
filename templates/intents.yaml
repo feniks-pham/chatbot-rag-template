@@ -1,0 +1,27 @@
+zen_cafe:
+  name: Thiền Cà Phê
+  data_source:
+    type: vector_db
+    file: trung-nguyen-legend.xlsx
+  prompt_file: zen_cafe_prompt.txt
+
+location:
+  name: Địa điểm trải nghiệm
+  data_source:
+    type: crawl
+    web_url: https://thiencaphe.trungnguyenlegendcafe.net/
+  prompt_file: location_prompt.txt
+
+product:
+  name: Sản phẩm
+  data_source:
+    type: crawl
+    web_url: https://thiencaphe.trungnguyenlegendcafe.net/san-pham/
+  prompt_file: product_prompt.txt
+
+philosophy:
+  name: Cà phê triết đạo
+  data_source:
+    type: fixed
+    context: ""
+  prompt_file: philosophy_prompt.txt

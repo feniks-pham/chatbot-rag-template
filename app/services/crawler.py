@@ -18,16 +18,16 @@ class CrawlService:
             logger.info("MarkdownCrawler created successfully")
         return self.crawler
     
-    async def crawl_stores(self) -> str:
-        """Crawl store information from the website"""
+    async def crawl_web(self, url: str) -> str:
+        """Crawl information from the website"""
         from app.config.settings import settings
-        base_dir = 'temp_crawl_stores'
+        base_dir = 'temp_crawl_web'
         try:
             crawler = self._get_crawler()
 
-            logger.info(f"🕸️ Starting crawl of {settings.store_url}")
+            logger.info(f"🕸️ Starting crawl of {url}")
             crawler(
-                settings.store_url,
+                url,
                 max_depth=0,
                 num_threads=1,
                 base_dir=base_dir,
@@ -41,51 +41,51 @@ class CrawlService:
             self._cleanup_temp_dir(base_dir)
             
             if markdown_content:
-                logger.info(f"Successfully crawled stores from {settings.store_url}")
+                logger.info(f"Successfully crawled stores from {url}")
                 return markdown_content
             else:
-                logger.error(f"Failed to crawl stores from {settings.store_url}")
-                raise Exception(f"Failed to crawl stores from {settings.store_url}")
+                logger.error(f"Failed to crawl stores from {url}")
+                raise Exception(f"Failed to crawl stores from {url}")
         except Exception as e:
             logger.error(f"Error crawling stores: {str(e)}")
             # Cleanup on error too
             self._cleanup_temp_dir(base_dir)
             raise
     
-    async def crawl_products(self) -> str:
-        """Crawl product information from the website"""
-        from app.config.settings import settings
-        base_dir = 'temp_crawl_products'
+    # async def crawl_products(self) -> str:
+    #     """Crawl product information from the website"""
+    #     from app.config.settings import settings
+    #     base_dir = 'temp_crawl_products'
         
-        try:
-            crawler = self._get_crawler()
+    #     try:
+    #         crawler = self._get_crawler()
             
-            logger.info(f"🕸️ Starting crawl of {settings.product_url}")
-            crawler(
-                settings.product_url,
-                max_depth=0,
-                num_threads=1,
-                base_dir=base_dir,
-                is_debug=True
-            )
+    #         logger.info(f"🕸️ Starting crawl of {settings.product_url}")
+    #         crawler(
+    #             settings.product_url,
+    #             max_depth=0,
+    #             num_threads=1,
+    #             base_dir=base_dir,
+    #             is_debug=True
+    #         )
             
-            # Read the generated markdown file
-            markdown_content = self._read_markdown_files(base_dir)
+    #         # Read the generated markdown file
+    #         markdown_content = self._read_markdown_files(base_dir)
             
-            # Cleanup temp directory
-            self._cleanup_temp_dir(base_dir)
+    #         # Cleanup temp directory
+    #         self._cleanup_temp_dir(base_dir)
             
-            if markdown_content:
-                logger.info(f"Successfully crawled products from {settings.product_url}")
-                return markdown_content
-            else:
-                logger.error(f"Failed to crawl products from {settings.product_url}")
-                raise Exception(f"Failed to crawl products from {settings.product_url}")
-        except Exception as e:
-            logger.error(f"Error crawling products: {str(e)}")
-            # Cleanup on error too
-            self._cleanup_temp_dir(base_dir)
-            raise
+    #         if markdown_content:
+    #             logger.info(f"Successfully crawled products from {settings.product_url}")
+    #             return markdown_content
+    #         else:
+    #             logger.error(f"Failed to crawl products from {settings.product_url}")
+    #             raise Exception(f"Failed to crawl products from {settings.product_url}")
+    #     except Exception as e:
+    #         logger.error(f"Error crawling products: {str(e)}")
+    #         # Cleanup on error too
+    #         self._cleanup_temp_dir(base_dir)
+    #         raise
     
     def _read_markdown_files(self, base_dir: str) -> str:
         """Read all markdown files from the crawled directory"""

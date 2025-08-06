@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import sessions, chat, tts
 from app.models.database import create_tables
+from app.models.opensearch import create_indices
+from app.config.settings import settings
 from app.services.crawler import crawl_service
 from app.utils.logger import get_logger
 
@@ -17,12 +19,15 @@ async def lifespan(_: FastAPI):  # Use underscore to indicate unused parameter
         logger.info("Starting application initialization...")
         
         # Create database tables
-        create_tables()
+        if settings.is_postgres:
+            create_tables()
+        else:
+            create_indices()
         logger.info("Database tables created successfully")
         
         # Initialize chat service
         from app.core.chat_service import chat_service
-        chat_service.initialize_vector_store()
+        # chat_service.initialize_vector_store()
         logger.info("Vector store initialized successfully")
         
         logger.info("Application startup completed successfully")

@@ -48,15 +48,15 @@ class S3Service:
             self.thread_local.s3_client = boto3.client('s3', **s3_config)
         return self.thread_local.s3_client
     
-    async def load_qa_data(self) -> List[Dict[str, str]]:
+    async def load_qa_data(self, filename) -> List[Dict[str, str]]:
         """Load Q&A data from Excel file in S3"""
         try:
-            logger.info(f"Loading Q&A data from S3: {self.bucket}/{settings.s3_excel_file_key}")
+            logger.info(f"Loading Q&A data from S3: {self.bucket}/{filename}")
             
             # Download file from S3
             response = self.s3_client.get_object(
                 Bucket=self.bucket,
-                Key=settings.s3_excel_file_key
+                Key=filename
             )
             
             logger.info("Successfully downloaded Excel file from S3")

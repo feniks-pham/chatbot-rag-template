@@ -1,29 +1,20 @@
+import os
 from typing import List, Dict
 
 from langchain.prompts import ChatPromptTemplate
 
 from app.services.llm import LLMService
 from app.utils.logger import get_logger
+from app.utils.load_intents import load_prompt_template
 
 logger = get_logger(__name__)
+
 
 class IntentRouter:
     def __init__(self, llm_service: LLMService):
         self.llm_service = llm_service
         self.intent_prompt = ChatPromptTemplate.from_messages([
-            ("system", """Bạn là một hệ thống phân loại ý định cho chatbot cafe Trung Nguyên.
-Hãy phân loại câu hỏi của người dùng vào một trong ba loại sau:
-
-1. "location" - Câu hỏi về địa chỉ tổ chức, vị trí, số điện thoại, thời gian tổ chức trải nghiệm thiền cà phê
-   Ví dụ: "Địa chỉ tổ chức thiền cà phê của Trung Nguyên Legend", "Số điện thoại và cách đặt vé trải nghiệm thiền cà phê?", "Thời gian tổ chức trải nghiệm thiền cà phê là khi nào?"
-
-2. "product" - Câu hỏi về sản phẩm, giá cả, menu, loại cà phê
-   Ví dụ: "Giá cà phê espresso bao nhiêu?", "Có những loại bộ sản phẩm nào?"
-
-3. "zen_cafe" - Tất cả các câu hỏi khác, đặc biệt về triết lý, văn hóa, thiền cafe
-   Ví dụ: "Thiền cafe là gì?", "Triết lý của Trung Nguyên?"
-
-Chỉ trả lời bằng một từ: location, product, hoặc zen_cafe"""),
+            ("system", load_prompt_template("intent_prompt.txt")),
             ("user", "Câu hỏi: {query}")
         ])
     
@@ -55,23 +46,7 @@ class QueryRewriter:
     def __init__(self, llm_service: LLMService):
         self.llm_service = llm_service
         self.rewrite_prompt = ChatPromptTemplate.from_messages([
-            ("system", """Bạn là một trợ lý AI giúp viết lại câu hỏi dựa trên lịch sử hội thoại.
-Nhiệm vụ của bạn là:
-1. Nếu câu hỏi hiện tại đã rõ ràng và đầy đủ, giữ nguyên
-2. Nếu câu hỏi thiếu context hoặc mơ hồ, kết hợp với lịch sử để làm rõ
-3. Chỉ trả về câu hỏi đã được viết lại, không giải thích thêm
-
-Ví dụ:
-- Lịch sử: "Tôi muốn biết về cà phê espresso"
-- Câu hỏi mới: "Giá bao nhiêu?"
-- Kết quả: "Giá cà phê espresso bao nhiêu?"
-
-Lịch sử hội thoại:
-{history}
-
-Câu hỏi hiện tại: {query}
-
-Câu hỏi đã viết lại:"""),
+            ("system", load_prompt_template("rewrite_prompt.txt")),
             ("user", "{query}")
         ])
     
