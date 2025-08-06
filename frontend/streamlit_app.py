@@ -266,23 +266,21 @@ def main():
         - ☕ Sản phẩm và giá cả
         
         """)
-
-        if "tts_provider" not in st.session_state:
-            st.session_state.tts_provider = "Zalo"
-
-        if "use_streaming" not in st.session_state:
-            st.session_state.use_streaming = True
-
         # Choose TTS provider (default is Zalo)
-        st.radio(
-            "Chọn TTS Provider:",
+
+        selected = st.selectbox(
+            "Chọn TTS Provider",
             options=["Zalo", "Gemini"],
-            key="tts_provider"
+            index=["Zalo", "Gemini"].index(st.session_state.tts_provider)  
         )
-        st.write("Provider đang chọn:", st.session_state.tts_provider)
+
+        if selected != st.session_state.tts_provider:
+            st.session_state.tts_provider = selected
+        st.write("Provider đang chọn: ", st.session_state.tts_provider)
         
         # Toggle streaming mode
-        st.checkbox("Sử dụng Streaming", key="use_streaming")
+        use_streaming = st.checkbox("Sử dụng Streaming", value=True)
+        st.session_state.use_streaming = use_streaming
         
         if st.button("Tạo phiên mới"):
             st.session_state.session_id = create_session()
