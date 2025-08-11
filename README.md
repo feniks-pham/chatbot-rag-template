@@ -235,7 +235,7 @@ kubectl apply -f k8s/frontend-service.yaml
 kubectl apply -f k8s/frontend-deployment.yaml
 
 # Clean up when finished
-kubectl delete -f k8s/trung-nguyen-deployment.yaml
+kubectl delete -f k8s/chatbot-deployment.yaml
 ```
 
 ## Troubleshooting
