@@ -93,6 +93,26 @@ Copy env.dev.example to .env and fill in all required values according to the in
 cp env.dev.example .env
 ```
 
+Note: Those following .env values cannot be left blank 
+
+```env
+LLM_API_URL=your_llm_api_url 
+LLM_API_KEY=your_llm_api_key
+
+TTS_API_URL=your_tts_api_url 
+TTS_API_KEY=your_tts_api_key 
+
+GEMINI_TTS_API_URL=your_gemini_tts_api_url
+GEMINI_TTS_API_KEY=your_gemini_api_key
+
+EMBEDDING_API_URL=your_embedding_api_url
+EMBEDDING_API_KEY=your_embedding_api_key
+EMBEDDING_MODEL_NAME=your_embedding_model_name
+EMBEDDING_MAX_TOKENS=your_embedding_model_max_tokens 
+
+HF_TOKEN=your_huggingface_token 
+```
+
 We support two types of vector databases, which are PostgreSQL and OpenSearch, but only one is used at runtime, and selected by the DATABASE value in your .env file. This is key settings for each database
 
 - PostgreSQL:
@@ -102,16 +122,16 @@ DATABASE=postgres
 DATABASE_URL=postgresql://postgres_user:postgres_password@postgres_host/postgres_db
 ```
 
+Note: If the database in the URL has not been created beforehand, the application will automatically create the corresponding database for you when running, but we recommend that you create the database manually before running to avoid unexpected errors.
+
 - OpenSearch:
 
 ```env
 DATABASE=opensearch
-OPENSEARCH_HOST=your_opensearch_host
-OPENSEARCH_PORT=your_opensearch_port
-OPENSEARCH_USER=your_opensearch_user
-OPENSEARCH_INITIAL_ADMIN_PASSWORD=your_opensearch-password
-OPENSEARCH_URL=your_opensearch_url
+OPENSEARCH_URL=https://opensearch_user:opensearch_password@opensearch_host:opensearch_port
 ```
+
+Note: You only need to pass the url for the database that you use, do not have to fill both
 
 2. **Create virtual environment**
 
@@ -176,6 +196,8 @@ Copy env.prod.example to .env and fill in all required values according to the i
 cp env.prod.example .env
 ```
 
+Note: Look at the 'Running with Docker' section to see which .env values are mandatory and must be filled in.
+
 Then you need to setup the .env settings for your s3 service
 
 ```env
@@ -187,52 +209,15 @@ S3_ENDPOINT_URL=your_s3_endpoint_url
 
 Finally, you can setup the .env settings for your databases as same as running with docker
 
-2. **Create virtual environment**
+2. **Kubernetes deployment**
 
-```bash
-python3.13 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
+First, you need to pass all corresponding data from .env to configmap and secret section in file k8s/chatbot-deployment.yaml.
 
-3. **Initialize database**
-
-```bash
-psql $DATABASE_URL -f scripts/init_db.sql
-```
-
-4. **Index knowledge base from S3**
-
-```bash
-python scripts/import_qa_data.py
-```
-
-5. **Kubernetes deployment**
-
-First, you need to create ConfigMap for non-sensitive configs 
-
-Note: you need to pass all corresponding data from .env to k8s/configmap.yaml
-
-```bash 
-kubectl create -f k8s/configmap.yaml
-```
-
-Second, you need to create Secret for sensitive data
-
-Note: you need to pass all corresponding data from .env to k8s/secret.yaml
-
-```bash
-kubectl create -f k8s/secret.yaml
-```
-
-Finally, you can deploy the application
+Then, you can deploy the application
 
 ```bash
 # Deploy the application
-kubectl apply -f k8s/backend-service.yaml
-kubectl apply -f k8s/backend-deployment.yaml
-kubectl apply -f k8s/frontend-service.yaml
-kubectl apply -f k8s/frontend-deployment.yaml
+kubectl apply -f k8s/chatbot-deployment.yaml
 
 # Clean up when finished
 kubectl delete -f k8s/chatbot-deployment.yaml
