@@ -2,14 +2,16 @@ import os
 import tempfile
 import re
 import base64
+import numpy as np
 from typing import List
 
 import httpx
 import aiofiles
 
-# from google import genai
-# from google.genai import types
-# import wave
+from google import genai
+from google.genai import types
+from scipy.io.wavfile import write as write_wav
+import wave
 
 from app.config.settings import settings
 from app.utils.logger import get_logger
@@ -454,13 +456,22 @@ class GeminiTTSService:
 #         logger.info(f"Split into {len(chunks)} chunks")
 #         return chunks
 
-#     def _save_audio(self, filename: str, pcm_data: bytes):
-#         """Save raw PCM bytes into a WAV file"""
-#         with wave.open(filename, "wb") as wf:
-#             wf.setnchannels(1)
-#             wf.setsampwidth(2)  # 16-bit
-#             wf.setframerate(self.sample_rate)
-#             wf.writeframes(pcm_data)
+#     def _save_audio(self, filename: str, pcm_base64: bytes):
+#         # """Save raw PCM bytes into a WAV file"""
+#         # with wave.open(filename, "wb") as wf:
+#         #     wf.setnchannels(1)
+#         #     wf.setsampwidth(2)  # 16-bit
+#         #     wf.setframerate(self.sample_rate)
+#         #     wf.writeframes(pcm_data)
+#         """Convert PCM bytes to numpy array and save to WAV"""
+#         pcm_data = base64.b64decode(pcm_base64)
+    
+#         # Nếu độ dài không chia hết cho 2 -> dữ liệu không hợp lệ
+#         if len(pcm_data) % 2 != 0:
+#             pcm_data = pcm_data[:-1]  # hoặc raise Exception nếu bạn muốn nghiêm ngặt
+
+#         audio_np = np.frombuffer(pcm_data, dtype=np.int16)
+#         write_wav(filename, self.sample_rate, audio_np)
 
 #     async def _generate_speech_chunk(self, text: str, index: int) -> str:
 #         logger.info(f"Generating audio for chunk {index}: {text[:60]}...")
@@ -480,7 +491,7 @@ class GeminiTTSService:
 
 #         audio_data = response.candidates[0].content.parts[0].inline_data.data
 #         raw_pcm = base64.b64decode(audio_data)
-
+#         print("First 50 decoded bytes:", raw_pcm[:50])
 #         temp_dir = tempfile.gettempdir()
 #         output_path = os.path.join(temp_dir, f"gemini_tts_chunk_{index}.wav")
 #         self._save_audio(output_path, raw_pcm)

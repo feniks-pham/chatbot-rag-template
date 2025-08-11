@@ -40,9 +40,12 @@ class ResponseGenerator:
         logger.info(f"Generating response for intent: {intent}, query: {query[:50]}...")
         config = self.intent.get(intent)
         if not config:
-            logger.warning(f"Unknown intent: {intent}, defaulting to zen_cafe")
-            intent = "zen_cafe"
-            config = self.intent[intent]
+            for key, value in self.intent.items():
+                if value.get("default") == "Yes":
+                    logger.warning(f"Unknown intent: {intent}, defaulting to {key}")
+                    intent = key
+                    config = self.intent[intent]                  
+                    break
         try:
             prompt = self.prompts[intent]
             data_type = config["data_source"]["type"]
@@ -96,9 +99,12 @@ class ResponseGenerator:
         logger.info(f"Generating streaming response for intent: {intent}, query: {query[:50]}...")
         config = self.intent.get(intent)
         if not config:
-            logger.warning(f"Unknown intent: {intent}, defaulting to zen_cafe")
-            intent = "zen_cafe"
-            config = self.intent[intent]
+            for key, value in self.intent.items():
+                if value.get("default") == "Yes":
+                    logger.warning(f"Unknown intent: {intent}, defaulting to {key}")
+                    intent = key
+                    config = self.intent[intent]                  
+                    break
         try:
             prompt = self.prompts[intent]
             data_type = config["data_source"]["type"]

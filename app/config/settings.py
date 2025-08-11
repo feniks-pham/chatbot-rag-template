@@ -6,7 +6,7 @@ from pydantic import field_validator
 class Settings(BaseSettings):
     # Environment
     app_env: str = "dev"  # dev or prod
-    database: str = "opensearch" # postgres or opensearch
+    database: str = "postgres" # postgres or opensearch
     
     # Database (postgres)
     database_url: str
@@ -23,10 +23,6 @@ class Settings(BaseSettings):
     aws_access_key_id: str = ""
     aws_secret_access_key: str = ""
     s3_endpoint_url: str = ""
-    s3_excel_file_key: str = ""
-    
-    # Local data (only for dev)
-    local_data_file: str = "data/trung-nguyen-legend.xlsx"
     
     # LLM
     llm_api_url: str
@@ -51,7 +47,11 @@ class Settings(BaseSettings):
     gemini_tts_pitch: float = 0.0
     gemini_tts_sample_rate_hertz: int = 24000
 
-    gemini_api_key: str
+    # STT
+    # stt_api_url: str
+    # stt_api_key: str
+    # stt_model: str = "zalo-stt-vi"
+    # stt_encoding_type: str = "mp3"
 
     # Embedding
     embedding_api_url: str
@@ -67,8 +67,8 @@ class Settings(BaseSettings):
     log_dir: str = "~/logs/trung-nguyen-chatbot"
     
     # Crawl URLs
-    store_url: str
-    product_url: str
+    # store_url: str
+    # product_url: str
     
     class Config:
         env_file = ".env"
@@ -108,14 +108,10 @@ class Settings(BaseSettings):
             # Production requires S3 settings
             required_s3_fields = [
                 's3_path', 'aws_access_key_id', 'aws_secret_access_key', 
-                's3_endpoint_url', 's3_excel_file_key'
+                's3_endpoint_url'
             ]
             for field in required_s3_fields:
                 if not getattr(self, field):
                     raise ValueError(f"Production environment requires {field} to be set")
-        elif self.is_dev:
-            # Development requires local data file
-            if not os.path.exists(self.local_data_file):
-                raise ValueError(f"Development environment requires local data file at {self.local_data_file}")
 
 settings = Settings()

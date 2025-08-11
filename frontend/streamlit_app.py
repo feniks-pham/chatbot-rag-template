@@ -268,6 +268,9 @@ def main():
         """)
         # Choose TTS provider (default is Zalo)
 
+        if "tts_provider" not in st.session_state:
+            st.session_state.tts_provider = "Zalo"
+
         selected = st.selectbox(
             "Chọn TTS Provider",
             options=["Zalo", "Gemini"],

@@ -5,7 +5,7 @@ from langchain.prompts import ChatPromptTemplate
 
 from app.services.llm import LLMService
 from app.utils.logger import get_logger
-from app.utils.load_intents import load_prompt_template
+from app.utils.load_intents import load_intents, load_prompt_template
 
 logger = get_logger(__name__)
 
@@ -13,6 +13,7 @@ logger = get_logger(__name__)
 class IntentRouter:
     def __init__(self, llm_service: LLMService):
         self.llm_service = llm_service
+        self.intent = load_intents()
         self.intent_prompt = ChatPromptTemplate.from_messages([
             ("system", load_prompt_template("intent_prompt.txt")),
             ("user", "Câu hỏi: {query}")
@@ -31,16 +32,20 @@ class IntentRouter:
             intent = response.strip().lower()
             
             # Validate intent
-            if intent in ["location", "product", "philosophy", "zen_cafe"]:
+            if intent in self.intent:
                 logger.info(f"Intent classified as: {intent}")
                 return intent
             else:
-                logger.warning(f"Invalid intent '{intent}', defaulting to zen_cafe")
-                return "zen_cafe"  # Default fallback
+                for i, config in self.intent.items():
+                    if config.get("default") == "Yes":                   
+                        logger.warning(f"Invalid intent '{intent}', defaulting to {i}")
+                        return i  # Default fallback
                 
         except Exception as e:
             logger.error(f"Error in intent classification: {e}", exc_info=True)
-            return "zen_cafe"  # Default fallback
+            for i, config in self.intent.items():
+                if config.get("default") == "Yes":                  
+                    return i  # Default fallback
 
 class QueryRewriter:
     def __init__(self, llm_service: LLMService):

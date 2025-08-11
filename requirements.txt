@@ -20,7 +20,9 @@ pydub
 pydantic-settings
 python-dotenv
 python-json-logger
+scipy
 SQLAlchemy
 streamlit
+streamlit-audiorec
 transformers
 uvicorn

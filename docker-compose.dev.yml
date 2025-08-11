@@ -1,11 +1,35 @@
 version: '3.8'
 
 services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: chatbot-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./templates:/app/templates  # mount thư mục template bên ngoài
+    env_file: .env 
+    environment:
+      - PYTHONUNBUFFERED=1
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: chatbot-frontend
+    ports:
+      - "8501:8501"
+    env_file: .env 
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - backend
   postgres:
     image: pgvector/pgvector:pg16
-    container_name: trung-nguyen-postgres-dev
+    container_name: chatbot-postgres-dev
     environment:
-      POSTGRES_DB: trung_nguyen_chatbot
+      POSTGRES_DB: chatbot
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres123
     ports:
@@ -79,7 +103,6 @@ services:
     depends_on:
       - opensearch-node1
 
-
 volumes:
   postgres_data: 
   opensearch-data1:
@@ -87,6 +110,5 @@ volumes:
 
 networks:
   opensearch-net:
-  shared-net:
 
   

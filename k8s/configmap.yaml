@@ -1,32 +1,36 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: trung-nguyen-backend-config
+  name: chatbot-backend-config
   namespace: default
   labels:
     env: prod
 data:
   APP_ENV: "prod"
+  DATABASE: "postgres"
   LOG_LEVEL: "INFO"
   LLM_MODEL: "gemini-2.5-flash"
   TTS_MODEL: "zalo-tts-vi"
   TTS_SPEAKER_ID: "1"
   TTS_SPEED: "1.0"
   TTS_ENCODE_TYPE: "1"
+  GEMINI_TTS_VOICE_LANGUAGE_CODE: "vi-VN"
+  GEMINI_TTS_VOICE_NAME: "vi-VN-Standard-C"
+  GEMINI_TTS_AUDIO_ENCODING: "MP3"
+  GEMINI_TTS_SPEAKING_RATE: "1.0"
+  GEMINI_TTS_PITCH: "0.0"
+  GEMINI_TTS_SAMPLE_RATE_HERTZ: "24000"
   EMBEDDING_MAX_TOKENS: "8190"
   LOG_DIR: "/app/logs"
-  STORE_URL: "https://thiencaphe.trungnguyenlegendcafe.net/"
-  PRODUCT_URL: "https://thiencaphe.trungnguyenlegendcafe.net/san-pham/"
   S3_PATH: "trung-nguyen-docs"  # Update with actual value
   S3_ENDPOINT_URL: "https://hcm04.vstorage.vngcloud.vn"  # Update with actual value
-  S3_EXCEL_FILE_KEY: "trung-nguyen-legend.xlsx"  # Update with actual value
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: trung-nguyen-frontend-config
+  name: chatbot-frontend-config
   namespace: default
   labels:
     env: prod
 data:
-  API_BASE_URL: "http://trung-nguyen-backend:8000/api"  # Service DNS name in K8s
+  API_BASE_URL: "http://chatbot-backend:8000/api"  # Service DNS name in K8s

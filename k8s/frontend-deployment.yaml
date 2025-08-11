@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: trung-nguyen-frontend
+  name: chatbot-frontend
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: trung-nguyen-frontend
+      app: chatbot-frontend
   template:
     metadata:
       labels:
-        app: trung-nguyen-frontend
+        app: chatbot-frontend
     spec:
       containers:
         - name: frontend
@@ -20,7 +20,7 @@ spec:
             - containerPort: 8501
           envFrom:
             - configMapRef:
-                name: trung-nguyen-frontend-config
+                name: chatbot-frontend-config
 #            - secretRef:
 #                name: trung-nguyen-frontend-secret
           resources:

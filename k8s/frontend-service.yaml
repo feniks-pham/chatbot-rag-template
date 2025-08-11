@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: trung-nguyen-frontend
+  name: chatbot-frontend
 spec:
   type: LoadBalancer
   selector:
-    app: trung-nguyen-frontend
+    app: chatbot-frontend
   ports:
     - protocol: TCP
       port: 8501
