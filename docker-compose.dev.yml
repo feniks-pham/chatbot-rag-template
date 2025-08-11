@@ -5,11 +5,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.backend
+    platform: linux/amd64
     container_name: chatbot-backend
     ports:
       - "8000:8000"
     volumes:
       - ./templates:/app/templates  # mount thư mục template bên ngoài
+      - ./data:/app/data
     env_file: .env 
     environment:
       - PYTHONUNBUFFERED=1

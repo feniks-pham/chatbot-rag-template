@@ -30,6 +30,12 @@ venv/
 logs/
 *.log
 
+# Templates
+templates/
+
+# data
+data/
+
 # Environment variables
 .env
 .env.*

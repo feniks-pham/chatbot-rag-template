@@ -15,6 +15,7 @@ from app.services.embeddings import CustomEmbeddings
 from app.config.settings import settings
 from app.utils.logger import get_logger
 from app.utils.load_intents import load_intents
+from app.utils.create_db import create_db_if_not_exists
 logger = get_logger(__name__)
 
 def import_qa_data():
@@ -57,6 +58,7 @@ def import_qa_data():
                 # Initialize vector store
                 logger.info("Initializing vector store...")
                 if settings.is_postgres:
+                    create_db_if_not_exists(settings.database_url)
                     vector_store = PGVector(
                         embeddings=embeddings,
                         connection=settings.database_url,

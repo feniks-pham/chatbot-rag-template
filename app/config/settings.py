@@ -9,14 +9,10 @@ class Settings(BaseSettings):
     database: str = "postgres" # postgres or opensearch
     
     # Database (postgres)
-    database_url: str
+    database_url: str = ""
 
     # Database (opensearch)
-    opensearch_host: str
-    opensearch_port: str
-    opensearch_user: str
-    opensearch_initial_admin_password: str
-    opensearch_url: str
+    opensearch_url: str = ""
     
     # S3 (only for prod)
     s3_path: str = ""
@@ -27,7 +23,7 @@ class Settings(BaseSettings):
     # LLM
     llm_api_url: str
     llm_api_key: str
-    llm_model: str = "gemini-2.0-flash"
+    llm_model: str = "gpt-4o-mini"
 
     # TTS
     tts_api_url: str
@@ -65,10 +61,6 @@ class Settings(BaseSettings):
     # Application
     log_level: str = "INFO"
     log_dir: str = "~/logs/trung-nguyen-chatbot"
-    
-    # Crawl URLs
-    # store_url: str
-    # product_url: str
     
     class Config:
         env_file = ".env"

@@ -25,9 +25,11 @@ COPY scripts/ scripts/
 # Create logs directory
 RUN mkdir -p /app/logs && chmod 777 /app/logs
 
+# Create templates folder
+RUN mkdir -p /app/templates
+
 # Create data directory and copy Excel file for dev environment
 RUN mkdir -p /app/data
-COPY data/trung-nguyen-legend.xlsx /app/data/
 
 # Expose port
 EXPOSE 8000

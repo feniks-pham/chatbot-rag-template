@@ -58,10 +58,6 @@ metadata:
 type: Opaque
 stringData: # Use stringData instead of data to avoid base64 encoding
   DATABASE_URL: "postgresql://postgres:postgres123@postgres:5432/trung_nguyen_chatbot"
-  OPENSEARCH_HOST: "your_opensearch_host"
-  OPENSEARCH_PORT: "your_opensearch_port"
-  OPENSEARCH_USER: "your_opensearch_user"
-  OPENSEARCH_INITIAL_ADMIN_PASSWORD: "your_opensearch_password"
   OPENSEARCH_URL: "your_opensearch_url"
   LLM_API_URL: "your_llm_api_url"  # Update
   LLM_API_KEY: "your_llm_api_key"  # Update
@@ -93,12 +89,12 @@ spec:
   template:
     metadata:
       labels:
-        app: châtbot-backend
+        app: chatbot-backend
     spec:
       containers:
         - name: backend
-          image: vcr.vngcloud.vn/60108-chatbot-rag/trung-nguyen-backend:1.0.0
-          imagePullPolicy: Always
+          image: chatbot-rag-template-backend 
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
           envFrom:
@@ -118,18 +114,18 @@ spec:
               mountPath: /app/logs
             - name: templates
               mountPath: /app/templates
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8000
-            initialDelaySeconds: 30
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 8000
-            initialDelaySeconds: 5
-            periodSeconds: 10
+          # livenessProbe:
+          #   httpGet:
+          #     path: /health
+          #     port: 8000
+          #   initialDelaySeconds: 30
+          #   periodSeconds: 10
+          # readinessProbe:
+          #   httpGet:
+          #     path: /health
+          #     port: 8000
+          #   initialDelaySeconds: 5
+          #   periodSeconds: 10
       volumes:
         - name: logs
           emptyDir: {}
@@ -152,8 +148,8 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: vcr.vngcloud.vn/60108-chatbot-rag/trung-nguyen-frontend:1.0.0
-          imagePullPolicy: Always
+          image: chatbot-rag-template-frontend 
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8501
           envFrom:

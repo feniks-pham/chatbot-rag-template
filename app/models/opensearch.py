@@ -1,20 +1,27 @@
 from datetime import datetime
 from uuid import uuid4
 from opensearchpy import OpenSearch
+from urllib.parse import urlparse
 
 from app.config.settings import settings
 
+parsed = urlparse(settings.opensearch_url)
+host = parsed.hostname        
+port = parsed.port              
+username = parsed.username      
+password = parsed.password      
+
 client = OpenSearch(
-    hosts=[{"host": settings.opensearch_host, "port": settings.opensearch_port}],
-    http_auth=(settings.opensearch_user, settings.opensearch_initial_admin_password),
+    hosts=[{"host": host, "port": port}],
+    http_auth=(username, password),
     use_ssl=True,
     verify_certs=False
 )
 
 def get_opensearch_db():
     client = OpenSearch(
-        hosts=[{"host": settings.opensearch_host, "port": settings.opensearch_port}],
-        http_auth=(settings.opensearch_user, settings.opensearch_initial_admin_password),
+        hosts=[{"host": host, "port": port}],
+        http_auth=(username, password),
         use_ssl=True,
         verify_certs=False
     )
