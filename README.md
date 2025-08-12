@@ -19,7 +19,7 @@ git clone https://github.com/feniks-pham/trung-nguyen-chatbot
 
 This chatbot uses files and web as data source
 
-First, you need to copy all the files that you want the chatbot use as data to data folder or if you use production deployment, you can put all the files to your s3 service
+First, you need to copy all the files that you want the chatbot use as data to data folder or if you use production deployment, you can put all the files to your s3.
 
 ```bash
 # Create data directory
@@ -81,6 +81,109 @@ This application supports two ways to deploy: via Docker or via Kubernetes (k8s)
 - Docker is recommended for local development and quick testing. 
 - Kubernetes is intended for production or staging environments, providing scalability, load balancing, and fault tolerance.
 
+### Running with Kubernetes
+
+1. **Setup ConfigMap and Secret**
+
+You need to setup and update env data in ConfigMap and Secret section in k8s/chatbot-deployment.yaml.You have to fill in all values that noted "Required" in that file
+
+```env
+# S3
+S3_PATH: "your_s3_path"
+S3_ENDPOINT_URL: "your_s3_endpoint_url"
+AWS_ACCESS_KEY_ID: "your_aws_access_key_id" 
+AWS_SECRET_ACCESS_KEY: "your_aws_secret_access_key"
+```
+
+Note: This is where you store your data, you can check your s3 to get those values
+
+```env
+# LLM model
+LLM_API_URL: "your_llm_api_url"
+LLM_API_KEY: "your_llm_api_key"
+LLM_API_MODEL: "your_llm_api_model"
+```
+
+Note: You have to use LLM model that support OpenAI. If you do not have any LLM api key, you can go to [OpenAI Platform](https://platform.openai.com/docs/overview) to create your api key and choose your approriate model.
+
+```env 
+# Embedding model
+EMBEDDING_API_URL: "your_embedding_api_url"
+EMBEDDING_API_KEY: "your_embedding_api_key"
+EMBEDDING_MODEL_NAME: "your_embedding_model_name"
+EMBEDDING_MAX_TOKENS: "your_embedding_max_tokens
+```
+
+Note: You should choose enbedding model that fits your data and supports your data languages. If you do not have any embedding api key, you can go to [HuggingFace](https://huggingface.co) to create your api key and choose your approriate model.
+
+```env
+HF_TOKEN: "your_huggingface_token"
+```
+
+Note: You can create this token here [HuggingFace](https://huggingface.co)
+
+```env
+# Zalo TTS 
+TTS_API_URL: "your_tts_api_url"
+TTS_API_KEY: "your_tts_api_key"
+```
+
+Note: If you would like to use Zalo text to speech for chatbot, you can contact us to get api url and api key. If not, you just leave default values there and do not choose Zalo when run text to speech for chatbot or it will get errors
+
+```env
+# Gemini TTS
+GEMINI_TTS_API_URL: "your_gemini_tts_api_url"
+GEMINI_TTS_API_KEY: "your_gemini_tts_api_key"
+```
+
+Note: If you would like to use Gemini text to speech for chatbot, you can fill in your Google api key there, or you can go to [Google API Key](https://cloud.google.com/docs/authentication/api-keys) to create your api key. If not, you just leave default values there and do not choose GEMINI when run text to speech for chatbot or it will get errors
+
+We support two types of vector databases, which are PostgreSQL and OpenSearch, but only one is used at runtime, and selected by the DATABASE value in your .env file. This is key settings for each database
+
+- PostgreSQL:
+
+```env
+DATABASE: "postgres"
+DATABASE_URL: "postgresql://postgres_user:postgres_password@postgres_host/postgres_db"
+```
+
+Note: If the database in the URL has not been created beforehand, the application will automatically create the corresponding database for you when running, but we recommend that you create the database manually before running to avoid unexpected errors.
+
+- OpenSearch:
+
+```env
+DATABASE: "opensearch"
+OPENSEARCH_URL: "https://opensearch_user:opensearch_password@opensearch_host:opensearch_port"
+```
+
+Note: You only need to pass the url for the database that you use, do not have to fill both
+
+
+
+2. **Kubernetes deployment**
+
+First, you have to create the configmap for your templates folder to mount it into your application deployed on k8s
+
+```bash
+kubectl create configmap templates-config --from-file=templates/
+```
+
+Note: You need to run this command in the same location where you keep your templates folder
+
+Then, you can deploy your application
+
+```bash
+# Deploy the application
+kubectl apply -f k8s/chatbot-deployment.yaml
+
+# View Logs
+kubectl get pods
+kubectl logs -f <Pod Name>
+
+# Clean up when finished
+kubectl delete -f k8s/chatbot-deployment.yaml
+```
+
 ### Running with Docker
 
 Make sure you have your Docker and Docker compose installed
@@ -93,27 +196,31 @@ Copy env.dev.example to .env and fill in all required values according to the in
 cp env.dev.example .env
 ```
 
-Note: Those following .env values cannot be left blank 
+You can check the instructions for the following env data in Running with Kubernetes section before
 
 ```env
+# LLM model
 LLM_API_URL=your_llm_api_url 
 LLM_API_KEY=your_llm_api_key
 
-TTS_API_URL=your_tts_api_url 
-TTS_API_KEY=your_tts_api_key 
-
-GEMINI_TTS_API_URL=your_gemini_tts_api_url
-GEMINI_TTS_API_KEY=your_gemini_api_key
-
+# Embedding model
 EMBEDDING_API_URL=your_embedding_api_url
 EMBEDDING_API_KEY=your_embedding_api_key
 EMBEDDING_MODEL_NAME=your_embedding_model_name
 EMBEDDING_MAX_TOKENS=your_embedding_model_max_tokens 
 
 HF_TOKEN=your_huggingface_token 
+
+# Zalo TTS
+TTS_API_URL=your_tts_api_url 
+TTS_API_KEY=your_tts_api_key 
+
+# Gemini TTS
+GEMINI_TTS_API_URL=your_gemini_tts_api_url
+GEMINI_TTS_API_KEY=your_gemini_api_key
 ```
 
-We support two types of vector databases, which are PostgreSQL and OpenSearch, but only one is used at runtime, and selected by the DATABASE value in your .env file. This is key settings for each database
+For development/testing, you should use Docker to host your database.
 
 - PostgreSQL:
 
@@ -122,7 +229,7 @@ DATABASE=postgres
 DATABASE_URL=postgresql://postgres_user:postgres_password@postgres_host/postgres_db
 ```
 
-Note: If the database in the URL has not been created beforehand, the application will automatically create the corresponding database for you when running, but we recommend that you create the database manually before running to avoid unexpected errors.
+Note: You can check docker-compose.dev.yml to get host, port, user, password and db for your postgres database
 
 - OpenSearch:
 
@@ -131,7 +238,7 @@ DATABASE=opensearch
 OPENSEARCH_URL=https://opensearch_user:opensearch_password@opensearch_host:opensearch_port
 ```
 
-Note: You only need to pass the url for the database that you use, do not have to fill both
+Note: You can check docker-compose.dev.yml to get host, port, user and password for your opensearch database
 
 2. **Create virtual environment**
 
@@ -142,8 +249,6 @@ pip install -r requirements.txt
 ```
 
 3. **Start Database**
-
-For development/testing, you should use Docker to host your database
 
 ```bash
 # For Postgres Database
@@ -177,50 +282,17 @@ python scripts/import_qa_data.py
 
 ```bash
 # Backend
-docker compose -f docker-compose.dev.yml up -d Backend
+docker compose -f docker-compose.dev.yml up -d backend
 
 # Frontend
 docker compose -f docker-compose.dev.yml up -d frontend
 
+# View logs
+docker ps
+docker logs -f <Container ID>
+
 # Cleaned up when finished
 docker compose -f docker-compose.dev.yml down
-```
-
-### Running with Kubernetes
-
-1. **Setup environment file**
-
-Copy env.prod.example to .env and fill in all required values according to the instructions
-
-```bash
-cp env.prod.example .env
-```
-
-Note: Look at the 'Running with Docker' section to see which .env values are mandatory and must be filled in.
-
-Then you need to setup the .env settings for your s3 service
-
-```env
-S3_PATH=your_s3_bucket_name
-AWS_ACCESS_KEY_ID=your_aws_access_key
-AWS_SECRET_ACCESS_KEY=your_aws_secret_key
-S3_ENDPOINT_URL=your_s3_endpoint_url
-```
-
-Finally, you can setup the .env settings for your databases as same as running with docker
-
-2. **Kubernetes deployment**
-
-First, you need to pass all corresponding data from .env to configmap and secret section in file k8s/chatbot-deployment.yaml.
-
-Then, you can deploy the application
-
-```bash
-# Deploy the application
-kubectl apply -f k8s/chatbot-deployment.yaml
-
-# Clean up when finished
-kubectl delete -f k8s/chatbot-deployment.yaml
 ```
 
 ## Troubleshooting
