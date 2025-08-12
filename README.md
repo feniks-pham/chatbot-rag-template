@@ -298,23 +298,23 @@ docker compose -f docker-compose.dev.yml down
 ## Troubleshooting
 
 1. **Database connection failed**
-   - Check if PostgreSQL is running
-   - Verify DATABASE_URL format
-   - Ensure database exists and has pgvector extension
+- Check if PostgreSQL is running
+- Verify DATABASE_URL format
+- Ensure database exists and has pgvector extension
 
 2. **S3 connection failed (Production)**
-   - Verify S3 credentials and endpoint
-   - Check if bucket exists and is accessible
-   - Ensure your s3 contains all files in your templates
+- Verify S3 credentials and endpoint
+- Check if bucket exists and is accessible
+- Ensure your s3 contains all files in your templates
 
 3. **Local file not found (Development)**
-   - Ensure all files in your templates exists
-   - Check files permissions
+- Ensure all files in your templates exists
+- Check files permissions
 
 4. **Import script fails**
-   - Check if all API keys are configured
-   - Verify database schema is initialized
-   - Check logs for specific error messages
+- Check if all API keys are configured
+- Verify database schema is initialized
+- Check logs for specific error messages
 
 
 
