@@ -1,28 +1,28 @@
-aiofiles
-bs4
-boto3
-fastapi
-ffmpeg-python
-huggingface_hub[cli]
-google.genai
-google-generativeai
-langchain
-langchain-community
-langchain-postgres
-markdown-crawler
-markdownify
-openpyxl
-opensearch-py 
-psycopg
+aiofiles==24.1.0
+bs4==0.0.2
+boto3==1.39.15
+fastapi==0.116.1
+# ffmpeg-python
+huggingface_hub[cli]==0.34.2
+# google.genai
+# google-generativeai
+langchain==0.3.27
+langchain-community==0.3.27
+langchain-postgres==0.0.15
+markdown-crawler==0.0.8
+markdownify==1.1.0
+openpyxl==3.1.5
+opensearch-py==3.0.0 
+psycopg==3.2.9
 psycopg[binary]
-psycopg2-binary
-pydub
-pydantic-settings
-python-dotenv
-python-json-logger
-scipy
-SQLAlchemy
-streamlit
-streamlit-audiorec
-transformers
-uvicorn
+psycopg2-binary==2.9.10
+pydub==0.25.1
+pydantic-settings==2.10.1
+python-dotenv==1.1.1
+python-json-logger==3.3.0
+scipy==1.16.1
+SQLAlchemy==2.0.41
+streamlit==1.47.1
+# streamlit-audiorec
+transformers==4.54.0
+uvicorn==0.35.0
