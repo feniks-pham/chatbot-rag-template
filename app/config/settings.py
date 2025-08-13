@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     database_url: str = ""
 
     # Database (opensearch)
+    opensearch_initial_admin_password: str = ""
     opensearch_url: str = ""
     
     # S3 (only for prod)

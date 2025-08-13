@@ -5,20 +5,13 @@ from urllib.parse import urlparse
 
 from app.config.settings import settings
 
-parsed = urlparse(settings.opensearch_url)
-host = parsed.hostname        
-port = parsed.port              
-username = parsed.username      
-password = parsed.password      
-
-client = OpenSearch(
-    hosts=[{"host": host, "port": port}],
-    http_auth=(username, password),
-    use_ssl=True,
-    verify_certs=False
-)
-
 def get_opensearch_db():
+    parsed = urlparse(settings.opensearch_url)
+    host = parsed.hostname        
+    port = parsed.port              
+    username = parsed.username      
+    password = parsed.password      
+
     client = OpenSearch(
         hosts=[{"host": host, "port": port}],
         http_auth=(username, password),
@@ -31,6 +24,18 @@ def get_opensearch_db():
         client.close()
 
 def create_indices():
+    parsed = urlparse(settings.opensearch_url)
+    host = parsed.hostname        
+    port = parsed.port              
+    username = parsed.username      
+    password = parsed.password      
+
+    client = OpenSearch(
+        hosts=[{"host": host, "port": port}],
+        http_auth=(username, password),
+        use_ssl=True,
+        verify_certs=False
+    )
     # sessions index
     if not client.indices.exists(index="sessions"):
         client.indices.create(
