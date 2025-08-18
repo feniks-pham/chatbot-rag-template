@@ -62,9 +62,9 @@ sleep 10
 max_attempts=30
 attempt=0
 while [ $attempt -lt $max_attempts ]; do
-    if sudo docker exec trung-nguyen-postgres-dev pg_isready -U postgres &>/dev/null; then
+    if sudo docker exec chatbot-postgres-dev pg_isready -U postgres &>/dev/null; then
         print_status "PostgreSQL is ready!"
-        sudo docker exec trung-nguyen-postgres-dev psql -U postgres -d trung_nguyen_chatbot -c '\dt'
+        sudo docker exec chatbot-postgres-dev psql -U postgres -d trung_nguyen_chatbot -c '\dt'
         break
     else
         print_status "Waiting for PostgreSQL... ($((attempt+1))/$max_attempts)"

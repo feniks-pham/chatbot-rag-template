@@ -25,15 +25,6 @@ class ResponseGenerator:
         self.embeddings = embeddings
         self.vector_store = vector_store
         self.intent = load_intents()
-        self.prompts = {}
-        
-        # Different prompt templates for each intent
-        for intent, config in self.intent.items():
-            prompt_text = load_prompt_template(config["prompt_file"])
-            self.prompts[intent] = ChatPromptTemplate.from_messages([
-                ("system", prompt_text),
-                ("user", "{query}")
-            ])
     
     async def generate_response(self, query: str, intent: str, history: List[Dict[str, str]]) -> str:
         """Generate response based on intent and context"""
@@ -47,7 +38,11 @@ class ResponseGenerator:
                     config = self.intent[intent]                  
                     break
         try:
-            prompt = self.prompts[intent]
+            prompt_text = load_prompt_template("system_prompt.txt")
+            prompt = ChatPromptTemplate.from_messages([
+                ("system", prompt_text),
+                ("user", "{query}")
+            ])
             data_type = config["data_source"]["type"]
             if data_type == "vector_db":
                 logger.info(f"Processing {intent} intent - getting vector context")
@@ -61,10 +56,6 @@ class ResponseGenerator:
                     raise ValueError(f"No corresponding web url for {intent} intent")
                 context = await crawl_service.crawl_web(url=url)
                 logger.info(f"Crawled {intent} web context length: {len(context)}")
-            elif data_type == "fixed":
-                logger.info(f"Processing {intent} intent - returning fixed content response")
-                context = config["data_source"].get("context", "")  
-                logger.info(f"Using fixed video response for {intent} intent")
             else:
                 logger.error(f"Unknown data source type: {data_type}")
                 raise ValueError(f"Unknown data source type: {data_type}")
@@ -78,6 +69,7 @@ class ResponseGenerator:
             
             messages = prompt.format_messages(
                 query=query,
+                intent=intent,
                 context=context,
                 history=history_text
             )
@@ -106,7 +98,11 @@ class ResponseGenerator:
                     config = self.intent[intent]                  
                     break
         try:
-            prompt = self.prompts[intent]
+            prompt_text = load_prompt_template("system_prompt.txt")
+            prompt = ChatPromptTemplate.from_messages([
+                ("system", prompt_text),
+                ("user", "{query}")
+            ])
             data_type = config["data_source"]["type"]
             if data_type == "vector_db":
                 logger.info(f"Processing {intent} intent - getting vector context")
@@ -120,10 +116,6 @@ class ResponseGenerator:
                     raise ValueError(f"No corresponding web url for {intent} intent")
                 context = await crawl_service.crawl_web(url=url)
                 logger.info(f"Crawled {intent} web context length: {len(context)}")
-            elif data_type == "fixed":
-                logger.info(f"Processing {intent} intent - returning fixed content response")
-                context = config["data_source"].get("context", "") 
-                logger.info(f"Using fixed video response for {intent} intent")
             else:
                 logger.error(f"Unknown data source type: {data_type}")
                 raise ValueError(f"Unknown data source type: {data_type}")
@@ -137,6 +129,7 @@ class ResponseGenerator:
             
             messages = prompt.format_messages(
                 query=query,
+                intent=intent,
                 context=context,
                 history=history_text
             )

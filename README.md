@@ -255,9 +255,9 @@ pip install -r requirements.txt
 docker compose -f docker-compose.dev.yml up -d postgres
    
 # For OpenSearch Database
-docker-compose -f docker-compose.dev.yml up -d opensearch-node1
-docker-compose -f docker-compose.dev.yml up -d opensearch-node2
-docker-compose -f docker-compose.dev.yml up -d opensearch-dashboards
+docker compose -f docker-compose.dev.yml up -d opensearch-node1
+docker compose -f docker-compose.dev.yml up -d opensearch-node2
+docker compose -f docker-compose.dev.yml up -d opensearch-dashboards
 
 # Stop Database
 docker compose -f docker-compose.dev.yml down
@@ -267,7 +267,7 @@ docker compose -f docker-compose.dev.yml down
 docker compose -f docker-compose.dev.yml logs -f postgres
 
 # For OpenSearch Database
-docker compose -f docker-compose.dev.yml logs -f opensearch-note1
+docker compose -f docker-compose.dev.yml logs -f opensearch-node1
 ```
 
 4. **Index knowledge base**

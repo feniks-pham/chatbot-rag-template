@@ -6,6 +6,7 @@ from pydantic import field_validator
 class Settings(BaseSettings):
     # Environment
     app_env: str = "dev"  # dev or prod
+    api_base_url: str = "http://localhost:8000/api"
     database: str = "postgres" # postgres or opensearch
     
     # Database (postgres)
@@ -61,7 +62,7 @@ class Settings(BaseSettings):
 
     # Application
     log_level: str = "INFO"
-    log_dir: str = "~/logs/trung-nguyen-chatbot"
+    log_dir: str = "~/logs/chatbot"
     
     class Config:
         env_file = ".env"

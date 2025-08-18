@@ -41,19 +41,20 @@ def import_qa_data():
         intents = load_intents()
         for intent, config in intents.items():
             if config["data_source"].get("file"): 
-                filename = config["data_source"].get("file")    
+                filename = config["data_source"].get("file")
+                file_type = os.path.splitext(filename)[1].lower()    
                 if settings.is_prod:
                     logger.info("Loading Q&A data from S3 (Production mode)...")
                     s3_service = S3Service()
-                    qa_data = asyncio.run(s3_service.load_qa_data(filename))
+                    data = asyncio.run(s3_service.load_qa_data(filename=filename, file_type=file_type))
                 else:
                     logger.info("Loading Q&A data from local file (Development mode)...")
                     data_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
                     file_path = os.path.join(data_path, filename) 
                     local_data_service = LocalDataService()
-                    qa_data = asyncio.run(local_data_service.load_qa_data(file_path))
+                    data = asyncio.run(local_data_service.load_qa_data(data_file=file_path, file_type=file_type))
                     
-                logger.info(f"Loaded {len(qa_data)} Q&A pairs")
+                logger.info(f"Loaded {filename} file successfully")
                     
                 # Initialize vector store
                 logger.info("Initializing vector store...")
@@ -77,35 +78,64 @@ def import_qa_data():
                 logger.info("Preparing documents...")
                 documents = []
                 metadatas = []
-                    
-                for i, qa in enumerate(qa_data):
-                    # Create document with question and answer combined
-                    document_content = f"Câu hỏi: {qa['question']}\nCâu trả lời: {qa['answer']}"
+
+                if file_type in [".xls", ".xlsx"]:                    
+                    for i, qa in enumerate(data):
+                        # Create document with question and answer combined
+                        document_content = f"Câu hỏi: {qa['question']}\nCâu trả lời: {qa['answer']}"
+                            
+                        # Count tokens using tokenizer
+                        tokens = tokenizer.encode(document_content, add_special_tokens=False)
+                        token_count = len(tokens)
+                            
+                        documents.append(document_content)
+                        metadatas.append({
+                            "question": qa['question'],
+                            "answer": qa['answer'],
+                            "type": intent,
+                            "tokens": token_count,
+                            "created_at": datetime.now().isoformat()
+                        })
+                            
+                        if (i + 1) % 10 == 0:
+                            logger.info(f"Processed {i + 1}/{len(data)} documents")
                         
-                    # Count tokens using tokenizer
-                    tokens = tokenizer.encode(document_content, add_special_tokens=False)
-                    token_count = len(tokens)
+                    # Add documents to vector store
+                    logger.info("Adding documents to vector store...")
+                    vector_store.add_texts(
+                        texts=documents,
+                        metadatas=metadatas
+                    )
                         
-                    documents.append(document_content)
-                    metadatas.append({
-                        "question": qa['question'],
-                        "answer": qa['answer'],
-                        "type": intent,
-                        "tokens": token_count,
-                        "created_at": datetime.now().isoformat()
-                    })
+                    logger.info(f"Successfully imported {len(documents)} Q&A pairs to vector database")
+
+                elif file_type == ".md":
+                    for i, qa in enumerate(data):
+                        document_content = qa
+
+                        # Count tokens using tokenizer
+                        tokens = tokenizer.encode(document_content, add_special_tokens=False)
+                        token_count = len(tokens)
+
+                        documents.append(document_content)
+                        metadatas.append({
+                            "type": intent,
+                            "tokens": token_count,
+                            "created_at": datetime.now().isoformat()
+                        })
+
+                        if (i + 1) % 10 == 0:
+                            logger.info(f"Processed {i + 1}/{len(data)} documents")
+
+                     # Add documents to vector store
+                    logger.info("Adding documents to vector store...")
+                    vector_store.add_texts(
+                        texts=documents,
+                        metadatas=metadatas
+                    )
                         
-                    if (i + 1) % 10 == 0:
-                        logger.info(f"Processed {i + 1}/{len(qa_data)} documents")
-                    
-                # Add documents to vector store
-                logger.info("Adding documents to vector store...")
-                vector_store.add_texts(
-                    texts=documents,
-                    metadatas=metadatas
-                )
-                    
-                logger.info(f"Successfully imported {len(documents)} Q&A pairs to vector database")
+                    logger.info(f"Successfully imported {len(documents)} data chunks to vector database")
+
         
     except Exception as e:
         logger.error(f"Error importing Q&A data: {e}", exc_info=True)

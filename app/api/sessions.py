@@ -15,11 +15,12 @@ logger = get_logger(__name__)
 router = APIRouter()
 
 @router.post("/session", response_model=SessionResponse)
-async def create_session(db: Session = Depends(get_db), client: OpenSearch = Depends(get_opensearch_db)):
+async def create_session():
     """Create a new chat session"""
     logger.info("Creating new chat session")
     if settings.is_postgres:
         try:
+            db = next(get_db())
             session_id = uuid4()
             session = SessionModel(id=session_id)
             db.add(session)
@@ -38,6 +39,7 @@ async def create_session(db: Session = Depends(get_db), client: OpenSearch = Dep
     
     else:
         try:
+            client = next(get_opensearch_db())
             session_id = uuid4()
             now = datetime.now().strftime("%Y%m%d")
             body = {
@@ -56,11 +58,12 @@ async def create_session(db: Session = Depends(get_db), client: OpenSearch = Dep
             raise HTTPException(status_code=500, detail=f"Failed to create session: {str(e)}")
 
 @router.get("/session/{session_id}")
-async def get_session(session_id: str, db: Session = Depends(get_db), client: OpenSearch = Depends(get_opensearch_db)):
+async def get_session(session_id: str):
     """Get session information"""
     logger.info(f"Getting session info for: {session_id}")
     if settings.is_postgres:
         try:
+            db = next(get_db())
             session = db.query(SessionModel).filter(SessionModel.id == session_id).first()
             if not session:
                 logger.warning(f"Session not found: {session_id}")
@@ -79,6 +82,7 @@ async def get_session(session_id: str, db: Session = Depends(get_db), client: Op
     
     else:
         try:
+            client = next(get_opensearch_db())
             response = client.search(
                 index="sessions",
                 body={

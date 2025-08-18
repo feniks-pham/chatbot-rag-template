@@ -21,11 +21,12 @@ intent_router = IntentRouter(llm_service)
 query_rewriter = QueryRewriter(llm_service)
 
 @router.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest, db: Session = Depends(get_db), client: OpenSearch = Depends(get_opensearch_db)):
+async def chat(request: ChatRequest):
     """Main chat endpoint"""
     logger.info(f"Chat request received - session_id: {request.session_id}, query: {request.query[:50]}...")
     if settings.is_postgres:
         try:
+            db = next(get_db())
             # Check if session exists
             session = db.query(SessionModel).filter(SessionModel.id == request.session_id).first()
             if not session:
@@ -81,7 +82,8 @@ async def chat(request: ChatRequest, db: Session = Depends(get_db), client: Open
             logger.error(f"Chat error for session {request.session_id}: {e}", exc_info=True)
             raise HTTPException(status_code=500, detail=f"Chat error: {str(e)}")
     else:       
-        try:    
+        try:
+            client = next(get_opensearch_db())    
             response = client.search(
                 index="sessions",
                 body={
@@ -148,13 +150,14 @@ async def chat(request: ChatRequest, db: Session = Depends(get_db), client: Open
             
 
 @router.post("/chat/stream")
-async def chat_stream(request: ChatRequest, db: Session = Depends(get_db), client: OpenSearch = Depends(get_opensearch_db)):
+async def chat_stream(request: ChatRequest):
     """Main chat endpoint with streaming response"""
     logger.info(f"Streaming chat request received - session_id: {request.session_id}, query: {request.query[:50]}...")
     
     async def generate_stream():
         if settings.is_postgres:
             try:
+                db = next(get_db())
                 # Check if session exists
                 session = db.query(SessionModel).filter(SessionModel.id == request.session_id).first()
                 if not session:
@@ -217,6 +220,7 @@ async def chat_stream(request: ChatRequest, db: Session = Depends(get_db), clien
 
         else:
             try:
+                client = next(get_opensearch_db())
                 response = client.search(
                     index="sessions",
                     body={
@@ -298,10 +302,11 @@ async def chat_stream(request: ChatRequest, db: Session = Depends(get_db), clien
     )
 
 @router.get("/chat/history/{session_id}")
-async def get_chat_history(session_id: str, db: Session = Depends(get_db), client: OpenSearch = Depends(get_opensearch_db)):
+async def get_chat_history(session_id: str):
     """Get chat history for a session"""
     if settings.is_postgres:
         try:
+            db = next(get_db())
             # Check if session exists
             session = db.query(SessionModel).filter(SessionModel.id == session_id).first()
             if not session:
@@ -317,6 +322,7 @@ async def get_chat_history(session_id: str, db: Session = Depends(get_db), clien
         
     else:
         try:
+            client = next(get_opensearch_db())
             response = client.search(
                     index="sessions",
                     body={

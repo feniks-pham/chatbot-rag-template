@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Configuration
-API_BASE_URL = os.getenv("API_BASE_URL", "http://0.0.0.0:8000/api")
+API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000/api")
 
 def create_session() -> Any | None:
     """Create a new chat session"""
@@ -82,9 +82,14 @@ def get_chat_history(session_id: str) -> List[Dict]:
 def text_to_speech(text: str) -> str | None:
     """Convert text to speech using TTS API and return base64 encoded audio data"""
     try:
-        tts_choice = st.session_state.get("tts_provider", "Zalo")
-        tts_endpoint = "/v1/tts-zalo" if tts_choice == "Zalo" else "/v1/tts-gemini"
-
+        tts_choice = st.session_state.get("tts_provider", "None")
+        if tts_choice == "Zalo":
+            tts_endpoint = "/v1/tts-zalo"
+        elif tts_choice == "Gemini":
+            tts_endpoint = "/v1/tts-gemini"
+        else:
+            st.warning("⚠️ Vui lòng chọn TTS provider (Zalo hoặc Gemini)")
+            return None
         response = requests.post(
             f"{API_BASE_URL}{tts_endpoint}",
             json={"text": text}
@@ -144,7 +149,7 @@ def main():
         st.session_state.current_audio = None
 
     st.set_page_config(
-        page_title="Trung Nguyen Legend Cafe Chatbot",
+        page_title="VNG Chatbot",
         page_icon="☕",
         layout="wide"
     )
@@ -154,7 +159,7 @@ def main():
         content, button_key = st.session_state.current_audio
         play_audio(content, button_key)
     
-    st.title("☕ Trung Nguyen Legend Cafe Chatbot")
+    st.title("☕ VNG Chatbot")
     st.markdown("Hỏi tôi về thiền cafe, cà phê triết đạo, địa chỉ trải nghiệm thiền cafe, và sản phẩm của Trung Nguyên Legend!")
     
     # Initialize session
@@ -169,12 +174,7 @@ def main():
             if message["role"] == "assistant":
                 cols = st.columns([0.95, 0.05])
                 with cols[0]:
-                    intent = message.get("intent", "")
-                    if intent == "triet_dao":
-                        st.markdown(message["content"])
-                        st.video("https://www.youtube.com/watch?v=sDAzSEXb1MA")
-                    else:
-                        st.markdown(message["content"])
+                    st.markdown(message["content"])
                 with cols[1]:
                     button_key = f"speak_history_{idx}"
                     if st.button("🔊", key=button_key, help="Click để nghe"):
@@ -197,7 +197,6 @@ def main():
             if use_streaming:
                 # Use streaming response
                 response_placeholder = st.empty()
-                intent_placeholder = st.empty()
                 loading_placeholder = st.empty()
                 
                 full_response = ""
@@ -269,12 +268,12 @@ def main():
         # Choose TTS provider (default is Zalo)
 
         if "tts_provider" not in st.session_state:
-            st.session_state.tts_provider = "Zalo"
+            st.session_state.tts_provider = "None"
 
         selected = st.selectbox(
             "Chọn TTS Provider",
-            options=["Zalo", "Gemini"],
-            index=["Zalo", "Gemini"].index(st.session_state.tts_provider)  
+            options=["None", "Zalo", "Gemini"],
+            index=["None", "Zalo", "Gemini"].index(st.session_state.tts_provider)  
         )
 
         if selected != st.session_state.tts_provider:
