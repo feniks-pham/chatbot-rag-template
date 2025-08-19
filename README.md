@@ -52,7 +52,6 @@ your_intent:
     data_source:
         type: vector_db
         file: your_file
-    prompt_file: your_intent_prompt_file.txt
 
 # For web data
 your_intent:
@@ -60,20 +59,11 @@ your_intent:
     data_source: 
         type: crawl
         web_url: your_web_url
-    prompt_file: your_intent_prompt_file.txt
-
-# For fixed answer data
-your_intent:
-    name: your_intent_name
-    data_source: 
-        type: fixed
-        context: ""
-    prompt_file: your_intent_prompt_file.txt
 ```
 
 Note: You need to set "default" value to one intent to make sure that the application will return the default intent in case it cannot define the intent of user query
 
-- Create your intent prompt file and two files intent_prompt.txt and rewrite_prompt.txt
+- In folder templates, create system_prompt.txt file to put your system prompt for the whole chatbot and create two other files intent_prompt.txt, rewrite_prompt.txt to put prompts that define user query intents and rewrite their query to fit the context
 
 ## Running the App
 
@@ -158,14 +148,16 @@ OPENSEARCH_URL: "https://opensearch_user:opensearch_password@opensearch_host:ope
 
 Note: You only need to pass the url for the database that you use, do not have to fill both
 
-
-
 2. **Kubernetes deployment**
 
 First, you have to create the configmap for your templates folder to mount it into your application deployed on k8s
 
 ```bash
+# Create configmap for templates
 kubectl create configmap templates-config --from-file=templates/
+
+# Clean up when finish
+kubectl delete configmap templates-config
 ```
 
 Note: You need to run this command in the same location where you keep your templates folder
@@ -180,7 +172,7 @@ kubectl apply -f k8s/chatbot-deployment.yaml
 kubectl get pods
 kubectl logs -f <Pod Name>
 
-# Clean up when finished
+# Clean up when finish
 kubectl delete -f k8s/chatbot-deployment.yaml
 ```
 
@@ -229,16 +221,17 @@ DATABASE=postgres
 DATABASE_URL=postgresql://postgres_user:postgres_password@postgres_host/postgres_db
 ```
 
-Note: You can check docker-compose.dev.yml to get host, port, user, password and db for your postgres database
+Note: You can check docker-compose.postgres.yml to get host, port, user, password and db for your Postgres database or you can set your own Postgres database information in that file
 
 - OpenSearch:
 
 ```env
 DATABASE=opensearch
+OPENSEARCH_INITIAL_ADMIN_PASSWORD=your_opensearch_password
 OPENSEARCH_URL=https://opensearch_user:opensearch_password@opensearch_host:opensearch_port
 ```
 
-Note: You can check docker-compose.dev.yml to get host, port, user and password for your opensearch database
+Note: If you use our default OpenSearch docker compose, remember to fill in OPENSEARCH_INITIAL_ADMIN_PASSWORD variable in .env file or it will get error. You can check docker-compose.opensearch.yml to get host, port, user and password for your OpenSearch database or you can set your own OpenSearch database information in that file. 
 
 2. **Create virtual environment**
 
@@ -250,42 +243,37 @@ pip install -r requirements.txt
 
 3. **Start Database**
 
+- Postgres
+
 ```bash
-# For Postgres Database
-docker compose -f docker-compose.dev.yml up -d postgres
-   
-# For OpenSearch Database
-docker compose -f docker-compose.dev.yml up -d opensearch-node1
-docker compose -f docker-compose.dev.yml up -d opensearch-node2
-docker compose -f docker-compose.dev.yml up -d opensearch-dashboards
+# Start Database
+docker compose -f docker-compose.postgres.yml up
+
+# View Logs
+docker compose -f docker-compose.postgres.yml logs
 
 # Stop Database
-docker compose -f docker-compose.dev.yml down
-
-# View Database Logs
-# For Postgres Database
-docker compose -f docker-compose.dev.yml logs -f postgres
-
-# For OpenSearch Database
-docker compose -f docker-compose.dev.yml logs -f opensearch-node1
+docker compose -f docker-compose.postgres.yml down
 ```
 
-4. **Index knowledge base**
-
-Embedding your data and store into your vector database
-
+- OpenSearch
+   
 ```bash
-python scripts/import_qa_data.py
+# Start Database
+docker compose -f docker-compose.opensearch.yml up
+
+# View Logs
+docker compose -f docker-compose.opensearch.yml logs
+
+# Stop Database
+docker compose -f docker-compose.opensearch.yml down
 ```
 
-5. **Start the application**
+4. **Start the application**
 
 ```bash
-# Backend
-docker compose -f docker-compose.dev.yml up -d backend
-
-# Frontend
-docker compose -f docker-compose.dev.yml up -d frontend
+# Start application
+docker compose -f docker-compose.dev.yml up
 
 # View logs
 docker ps
