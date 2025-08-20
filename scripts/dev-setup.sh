@@ -64,7 +64,7 @@ attempt=0
 while [ $attempt -lt $max_attempts ]; do
     if sudo docker exec chatbot-postgres-dev pg_isready -U postgres &>/dev/null; then
         print_status "PostgreSQL is ready!"
-        sudo docker exec chatbot-postgres-dev psql -U postgres -d trung_nguyen_chatbot -c '\dt'
+        sudo docker exec chatbot-postgres-dev psql -U postgres -d chatbot -c '\dt'
         break
     else
         print_status "Waiting for PostgreSQL... ($((attempt+1))/$max_attempts)"
@@ -94,8 +94,8 @@ pip install --upgrade pip
 pip install -r requirements.txt
 
 # Step 5: Check if data file exists
-if [ ! -f "data/trung-nguyen-legend.xlsx" ]; then
-    print_error "Data file not found at data/trung-nguyen-legend.xlsx"
+if [ ! -f "data/data.xlsx" ]; then
+    print_error "Data file not found at data/data.xlsx"
     print_warning "Please ensure your Excel file is placed in the data directory"
     exit 1
 fi

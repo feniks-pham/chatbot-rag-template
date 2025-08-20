@@ -3,7 +3,7 @@ zen_cafe:
   default: Yes # intent trả về mặc định khi không xác định được intent của query
   data_source:
     type: vector_db
-    file: trung-nguyen-legend.xlsx
+    file: data.xlsx
 
 location:
   name: Địa điểm trải nghiệm

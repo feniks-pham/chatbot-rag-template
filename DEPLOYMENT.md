@@ -19,8 +19,8 @@ The application supports two deployment modes:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/feniks-pham/trung-nguyen-chatbot
-   cd trung-nguyen-chatbot
+   git clone https://github.com/feniks-pham/chatbot-rag-template
+   cd chatbot-rag-template
    ```
 
 2. **Setup environment file (required before running setup script)**
@@ -81,14 +81,14 @@ If you prefer manual setup:
 
 The dev environment uses:
 - **Database**: PostgreSQL in Docker container
-- **Data Source**: Local Excel file (`data/trung-nguyen-legend.xlsx`)
+- **Data Source**: Local Excel file (`data/data.xlsx`)
 - **Environment**: `APP_ENV=dev`
 
 Key settings in `.env`:
 ```env
 APP_ENV=dev
-DATABASE_URL=postgresql://postgres:postgres123@localhost:5432/trung_nguyen_chatbot
-LOCAL_DATA_FILE=data/trung-nguyen-legend.xlsx
+DATABASE_URL=postgresql://postgres:postgres123@localhost:5432/chatbot
+LOCAL_DATA_FILE=data/data.xlsx
 ```
 
 ### Development Commands
@@ -128,8 +128,8 @@ docker-compose -f docker-compose.dev.yml logs -f postgres
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/feniks-pham/trung-nguyen-chatbot
-   cd trung-nguyen-chatbot
+   git clone https://github.com/feniks-pham/chatbot-rag-template
+   cd chatbot-rag-template
    ```
 
 2. **Setup environment file (required before running setup script)**
@@ -257,7 +257,7 @@ For Kubernetes deployment:
    - Ensure Excel file exists at specified key
 
 3. **Local file not found (Development)**
-   - Ensure `data/trung-nguyen-legend.xlsx` exists
+   - Ensure `data/data.xlsx` exists
    - Check file permissions
 
 4. **Import script fails**

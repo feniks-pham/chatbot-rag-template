@@ -160,7 +160,7 @@ def main():
         play_audio(content, button_key)
     
     st.title("☕ VNG Chatbot")
-    st.markdown("Hỏi tôi về thiền cafe, cà phê triết đạo, địa chỉ trải nghiệm thiền cafe, và sản phẩm của Trung Nguyên Legend!")
+    # st.markdown("Hỏi tôi về thiền cafe, cà phê triết đạo, địa chỉ trải nghiệm thiền cafe, và sản phẩm của Trung Nguyên Legend!")
     
     # Initialize session
     if "session_id" not in st.session_state:
@@ -256,15 +256,15 @@ def main():
     
     # Sidebar with information
     with st.sidebar:
-        st.header("Thông tin")
-        st.markdown("""
-        **Chatbot này có thể trả lời về:**
-        - 🧘 Thiền cafe và triết lý Trung Nguyên
-        - 📍 Địa chỉ trải nghiệm thiền cà phê
-        - 📞 Số điện thoại và cách đặt vé
-        - ☕ Sản phẩm và giá cả
+        # st.header("Thông tin")
+        # st.markdown("""
+        # **Chatbot này có thể trả lời về:**
+        # - 🧘 Thiền cafe và triết lý Trung Nguyên
+        # - 📍 Địa chỉ trải nghiệm thiền cà phê
+        # - 📞 Số điện thoại và cách đặt vé
+        # - ☕ Sản phẩm và giá cả
         
-        """)
+        # """)
         # Choose TTS provider (default is Zalo)
 
         if "tts_provider" not in st.session_state:
