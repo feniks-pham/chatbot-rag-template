@@ -36,10 +36,28 @@ os.environ.setdefault('PYTHONPATH', '/app')
 from app.config.settings import settings
 import psycopg2
 try:
-    conn = psycopg2.connect(settings.database_url)
-    conn.close()
-    print('Database is ready!')
-    exit(0)
+    if settings.is_postgres:
+        conn = psycopg2.connect(settings.database_url)
+        conn.close()
+        print('Postgres is ready!')
+        exit(0)
+    elif settings.is_opensearch:
+        from opensearchpy import OpenSearch
+        from urllib.parse import urlparse
+        parsed = urlparse(settings.opensearch_url)
+        host = parsed.hostname        
+        port = parsed.port              
+        username = parsed.username      
+        password = parsed.password
+        client = OpenSearch(
+            hosts=[{'host': host, 'port': port}], 
+            http_auth=(username, password),
+            use_ssl=True,
+            verify_certs=False
+        )
+        client.info()   
+        print('OpenSearch is ready!')
+        exit(0)   
 except Exception as e:
     print(f'Database not ready: {e}')
     exit(1)
@@ -62,28 +80,28 @@ fi
 print_status "Initializing database schema..."
 
 # Get DATABASE_URL from Python settings
-DATABASE_URL=$(python -c "
-import sys
-import os
-sys.path.insert(0, '/app')
-os.environ.setdefault('PYTHONPATH', '/app')
-from app.config.settings import settings
-print(settings.database_url)
-")
+# DATABASE_URL=$(python -c "
+# import sys
+# import os
+# sys.path.insert(0, '/app')
+# os.environ.setdefault('PYTHONPATH', '/app')
+# from app.config.settings import settings
+# print(settings.database_url)
+# ")
 
-if [ -z "$DATABASE_URL" ]; then
-    print_error "DATABASE_URL is empty or not set"
-    exit 1
-fi
+# if [ -z "$DATABASE_URL" ]; then
+#     print_error "DATABASE_URL is empty or not set"
+#     exit 1
+# fi
 
-print_status "Using DATABASE_URL: ${DATABASE_URL:0:50}..."
+# print_status "Using DATABASE_URL: ${DATABASE_URL:0:50}..."
 
-if psql "$DATABASE_URL" -f /app/scripts/init_db.sql; then
-    print_status "Database schema initialized successfully"
-else
-    print_error "Failed to initialize database schema"
-    exit 1
-fi
+# if psql "$DATABASE_URL" -f /app/scripts/init_db.sql; then
+#     print_status "Database schema initialized successfully"
+# else
+#     print_error "Failed to initialize database schema"
+#     exit 1
+# fi
 
 # Step 3: Import Q&A data
 print_status "Importing Q&A data..."
