@@ -119,7 +119,7 @@ Remember to fill in all variables for Postgres in .env file first.
 
 ```bash
 # Start Database
-docker compose -f docker-compose.postgres.yml up
+docker compose -f docker-compose.postgres.yml up -d
 
 # View Logs
 docker compose -f docker-compose.postgres.yml logs
@@ -134,7 +134,7 @@ Remember to fill in all variables for OpenSearch in .env file first.
    
 ```bash
 # Start Database
-docker compose -f docker-compose.opensearch.yml up
+docker compose -f docker-compose.opensearch.yml up -d
 
 # View Logs
 docker compose -f docker-compose.opensearch.yml logs
@@ -149,7 +149,7 @@ Make sure your .env file have all required variables set first.
 
 ```bash
 # Start application
-docker compose -f docker-compose.dev.yml up
+docker compose -f docker-compose.dev.yml up -d
 
 # View logs
 docker ps
