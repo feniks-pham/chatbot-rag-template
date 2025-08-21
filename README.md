@@ -12,7 +12,7 @@ This is an app that powered by LangChain, OpenAI LLM and Streamlit to create a c
 Download the project from Github
 
 ```bash
-git clone https://github.com/feniks-pham/chatbot-rag-template
+git clone -b main https://github.com/feniks-pham/chatbot-rag-template
 ```
 
 ## Running the App
@@ -27,20 +27,23 @@ Make sure you have your Docker and Docker compose installed.
 
 1. **Setup your environment file**
 
-Copy env.dev.example to .env and fill in all required values according to the instruction below.
-
+- We created a example environment for you. Let's copy env.dev.example to .env and fill in all required values according to the instruction below.
 ```bash
 cp env.dev.example .env
 ```
-
-For development/testing, you should use Docker to host your database.
-
+- After that, you have to configure the .env following:
+```bash
+vim .env
+```
 We support two types of vector databases, which are PostgreSQL and OpenSearch, but only one is used at runtime, and selected by the DATABASE value in your .env file. This is key settings for each database (you only need to fill in settings for database that you use, do not need to fill both):
 
 - Postgres:
 
 ```env
+# Database Type (postgres or opensearch)
 DATABASE=postgres
+
+# Database (Docker PostgreSQL)
 DATABASE_URL=postgresql://postgres_user:postgres_password@postgres_host/postgres_db
 ```
 
@@ -49,7 +52,10 @@ Note: You can check docker-compose.postgres.yml to get host, port, user, passwor
 - OpenSearch:
 
 ```env
+# Database Type (postgres or opensearch)
 DATABASE=opensearch
+
+# Database (Docker OpenSearch)
 OPENSEARCH_INITIAL_ADMIN_PASSWORD=your_opensearch_password
 OPENSEARCH_URL=https://opensearch_user:opensearch_password@opensearch_host:opensearch_port
 ```
@@ -115,19 +121,16 @@ pip install -r requirements.txt
 
 - Postgres
 
-Remember to fill in all variables for Postgres in .env file first.
+Remember to fill in all variables for Postgres in .env file first
 
 ```bash
 # Start Database
 docker compose -f docker-compose.postgres.yml up -d
-
 # View Logs
 docker compose -f docker-compose.postgres.yml logs
-
 # Stop Database
-docker compose -f docker-compose.postgres.yml down
+# docker compose -f docker-compose.postgres.yml down
 ```
-
 - OpenSearch
 
 Remember to fill in all variables for OpenSearch in .env file first.
@@ -135,12 +138,10 @@ Remember to fill in all variables for OpenSearch in .env file first.
 ```bash
 # Start Database
 docker compose -f docker-compose.opensearch.yml up -d
-
 # View Logs
 docker compose -f docker-compose.opensearch.yml logs
-
 # Stop Database
-docker compose -f docker-compose.opensearch.yml down
+# docker compose -f docker-compose.opensearch.yml down
 ```
 
 4. **Start the application**
@@ -150,15 +151,13 @@ Make sure your .env file have all required variables set first.
 ```bash
 # Start application
 docker compose -f docker-compose.dev.yml up -d
-
 # View logs
-docker ps
-docker logs -f <Container ID>
-
+# docker ps
+# docker logs -f <Container ID>
 # Cleaned up when finished
-docker compose -f docker-compose.dev.yml down
+#docker compose -f docker-compose.dev.yml down
 ```
-
+****
 ### Running with Kubernetes
 
 1. **Setup ConfigMap and Secret**
@@ -168,13 +167,16 @@ Copy env.prod.example to .env and fill in all required values according to the i
 ```bash
 cp env.prod.example .env
 ```
-
+- After that, you have to configure the .env following:
+```bash
+vim .env
+```
 When you run with Kubernetes, your chatbot will collect data from s3 instead of local files, so make sure that your s3 contain all needed files.
 
 This is your s3 settings.
 
 ```env
-# S3
+# S3 Settings (not used in dev, but kept for compatibility)
 S3_PATH=your_s3_path
 S3_ENDPOINT_URL=your_s3_endpoint_url
 AWS_ACCESS_KEY_ID=your_aws_access_key_id
@@ -188,8 +190,11 @@ For production running, you should have your own database instead of using datab
 - Postgres:
 
 ```env
-DATABASE: "postgres"
-DATABASE_URL: "postgresql://postgres_user:postgres_password@postgres_host/postgres_db"
+# Database Type (postgres or opensearch)
+DATABASE=postgres
+
+# Database (Docker PostgreSQL)
+DATABASE_URL=postgresql://postgres_user:postgres_password@postgres_host/postgres_db
 ```
 
 Note: If the database in the URL has not been created beforehand, the application will automatically create the corresponding database for you when running, but we recommend that you create the database manually before running to avoid unexpected errors.
@@ -197,8 +202,12 @@ Note: If the database in the URL has not been created beforehand, the applicatio
 - OpenSearch:
 
 ```env
-DATABASE: "opensearch"
-OPENSEARCH_URL: "https://opensearch_user:opensearch_password@opensearch_host:opensearch_port"
+# Database Type (postgres or opensearch)
+DATABASE=opensearch
+
+# Database (Docker OpenSearch)
+OPENSEARCH_INITIAL_ADMIN_PASSWORD=your_opensearch_password
+OPENSEARCH_URL=https://opensearch_user:opensearch_password@opensearch_host:opensearch_port
 ```
 
 Note: You only need to pass the url for the database that you use, do not have to fill both.
@@ -235,9 +244,8 @@ First, you have to create the configmap for your templates folder to mount it in
 ```bash
 # Create configmap for templates
 kubectl create configmap templates-config --from-file=templates/
-
 # Clean up when finished
-kubectl delete configmap templates-config
+# kubectl delete configmap templates-config
 ```
 
 Note: You need to run this command in the same location where you keep your templates folder
@@ -247,12 +255,10 @@ Then, you have to create configmap and secret for your env variables.
 ```bash
 # Load all .env variables into env
 export $(grep -v '^#' .env | xargs) 
-
 # Create configmap and secret
 envsubst < k8s/chatbot-configmap.yaml | kubectl apply -f -
-
 # Clean up when finished
-kubectl delete -f k8s/chatbot-configmap.yaml
+# kubectl delete -f k8s/chatbot-configmap.yaml
 ```
 
 Finally, you can deploy the application.
@@ -260,13 +266,11 @@ Finally, you can deploy the application.
 ```bash
 # Deploy the application
 kubectl apply -f k8s/chatbot-deployment.yaml
-
 # View Logs
-kubectl get pods
-kubectl logs -f <Pod Name>
-
+# kubectl get pods
+# kubectl logs -f <Pod Name>
 # Clean up when finish
-kubectl delete -f k8s/chatbot-deployment.yaml
+# kubectl delete -f k8s/chatbot-deployment.yaml
 ```
 
 ## Troubleshooting
@@ -323,22 +327,3 @@ Note: Make sure that your data folder or s3 have all files you put in intents.ya
 - Edit system_prompt.txt file to put your own system prompt for the whole chatbot and make sure that your system prompt including scenario for each type of intent.
 
 - Edit intent_prompt.txt file to put prompts that define user query intents depend on intents in your intents.yaml and rewrite_prompt.txt file to put prompts that rewrite user query to fit the context.
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
