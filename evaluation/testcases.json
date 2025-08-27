@@ -1,0 +1,154 @@
+{
+  "testcase": [
+    {
+      "id": "01",
+      "query": "Moore’s Law nói gì về sự phát triển của transistor?",
+      "sample answer": "Số transistor tích hợp trên chip sẽ tăng gấp đôi sau mỗi 18–24 tháng, theo quan sát của Moore từ năm 1975." 
+    },
+    {
+      "id": "02",
+      "query": "Máy tính ENIAC nặng bao nhiêu và sử dụng linh kiện gì?",
+      "sample answer": "ENIAC nặng hơn 30 tấn, chiếm diện tích khoảng 140 m² và sử dụng hơn 18.000 bóng chân không."
+    },
+    {
+      "id": "03",
+      "query": "Có bao nhiêu thế hệ máy tính chính trong lịch sử?",
+      "sample answer": "Có bốn thế hệ: bóng chân không (1946–1955), transistor (1955–1965), mạch tích hợp IC (1965–1980), và máy tính cá nhân (1980–…)." 
+    },
+    {
+      "id": "04",
+      "query": "Phân biệt response time và throughput?",
+      "sample answer": "Response time là thời gian hoàn thành một tác vụ, còn throughput là lượng công việc hoàn thành trên một đơn vị thời gian." 
+    },
+    {
+      "id": "05",
+      "query": "Công thức hiệu năng tương đối giữa hai hệ thống X và Y là gì?",
+      "sample answer": "Perf_X / Perf_Y = Time_Y / Time_X." 
+    },
+    {
+      "id": "06",
+      "query": "Clock period và clock frequency liên hệ với nhau như thế nào?",
+      "sample answer": "Clock frequency F = 1 / Clock period T."
+    },
+    {
+      "id": "07",
+      "query": "CPU Time có thể biểu diễn bằng những công thức nào?",
+      "sample answer": "CPU Time = Clock Cycles × Cycle Time = Clock Cycles / Clock Rate."
+    },
+    {
+      "id": "08",
+      "query": "Instruction Count (IC) và CPI ảnh hưởng thế nào đến CPU Time?",
+      "sample answer": "CPU Time = (IC × CPI) / Clock Rate."
+    },
+    {
+      "id": "09",
+      "query": "Weighted CPI được tính như thế nào?",
+      "sample answer": "Weighted CPI = (Σ(CPI_i × IC_i)) / Σ(IC_i)."
+    },
+    {
+      "id": "10",
+      "query": "Mô hình công suất động trong CMOS là gì?",
+      "sample answer": "P = C_load × V² × f."
+    },
+    {
+      "id": "11",
+      "query": "Power wall là gì?",
+      "sample answer": "Là giới hạn khi không thể giảm điện áp và tản nhiệt đủ, khiến việc tăng tần số xung không còn hiệu quả."
+    },
+    {
+      "id": "12",
+      "query": "Tại sao cần đến kiến trúc đa lõi và song song?",
+      "sample answer": "Do power wall, không thể tăng tốc độ xung thêm, nên hiệu năng phải dựa vào xử lý song song và nhiều lõi."
+    },
+    {
+      "id": "13",
+      "query": "SPEC CPU2006 đo lường cái gì?",
+      "sample answer": "Đo hiệu năng CPU với tải công việc gần như không có I/O, dựa trên thời gian chạy chuẩn hóa." 
+    },
+    {
+      "id": "14",
+      "query": "SPEC CINT2006 và CFP2006 khác nhau thế nào?",
+      "sample answer": "CINT2006 đo hiệu năng integer, CFP2006 đo hiệu năng floating-point."
+    },
+    {
+      "id": "15",
+      "query": "Pipeline registers trong pipeline 5 stage là gì?",
+      "sample answer": "Là IF/ID, ID/EX, EX/MEM, MEM/WB – giữ dữ liệu trung gian giữa các giai đoạn của pipeline."
+    },
+    {
+      "id": "16",
+      "query": "Data hazard RAW là gì?",
+      "sample answer": "Là khi một lệnh cần dữ liệu được sinh ra bởi lệnh trước đó chưa hoàn tất pipeline."
+    },
+    {
+      "id": "17",
+      "query": "Có những cách nào để xử lý data hazard?",
+      "sample answer": "Re-scheduling, chèn stall (bubble), và forwarding."
+    },
+    {
+      "id": "18",
+      "query": "Control hazard xảy ra khi nào?",
+      "sample answer": "Xảy ra khi kết quả của lệnh nhánh quyết định giá trị PC nhưng chưa được biết kịp thời."
+    },
+    {
+      "id": "19",
+      "query": "Forwarding trong pipeline có tác dụng gì?",
+      "sample answer": "Chuyển tiếp dữ liệu từ giai đoạn EX/MEM hoặc MEM/WB đến ALU để tránh stall."
+    },
+    {
+      "id": "20",
+      "query": "MIPS sử dụng những thanh ghi nào cho dấu phẩy động?",
+      "sample answer": "32 thanh ghi từ $f0 đến $f31, mỗi thanh ghi 32 bit, có thể ghép cặp để lưu double."
+    },
+    {
+      "id": "21",
+      "query": "Các lệnh cơ bản trong nhóm arithmetic của MIPS là gì?",
+      "sample answer": "add, sub, addi."
+    },
+    {
+      "id": "22",
+      "query": "Các lệnh load trong MIPS gồm những gì?",
+      "sample answer": "lw, lh/lhu, lb/lbu, lui."
+    },
+    {
+      "id": "23",
+      "query": "Các lệnh nhảy vô điều kiện trong MIPS là gì?",
+      "sample answer": "j, jal, jr."
+    },
+    {
+      "id": "24",
+      "query": "Thanh ghi $ra trong MIPS có chức năng gì?",
+      "sample answer": "Lưu địa chỉ quay về khi gọi thủ tục bằng jal."
+    },
+    {
+      "id": "25",
+      "query": "Stack trong MIPS tăng theo chiều nào?",
+      "sample answer": "Stack tăng xuống, tức là địa chỉ giảm dần."
+    },
+    {
+      "id": "26",
+      "query": "IEEE-754 single precision có cấu trúc thế nào?",
+      "sample answer": "1 bit dấu, 8 bit exponent (bias 127), 23 bit fraction."
+    },
+    {
+      "id": "27",
+      "query": "Bias exponent của double precision là bao nhiêu?",
+      "sample answer": "1023."
+    },
+    {
+      "id": "28",
+      "query": "Rounding mode mặc định trong IEEE-754 là gì?",
+      "sample answer": "Round-to-nearest-even."
+    },
+    {
+      "id": "29",
+      "query": "MIPS có lệnh nào để so sánh số chấm động?",
+      "sample answer": "c.xx.s hoặc c.xx.d, ví dụ c.lt.s, c.eq.d."
+    },
+    {
+      "id": "30",
+      "query": "Branch theo cờ FP trong MIPS dùng lệnh gì?",
+      "sample answer": "bc1t và bc1f."
+    }
+  ]
+}
