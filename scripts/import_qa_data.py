@@ -1,5 +1,7 @@
 import sys
 import os
+import re
+import json
 from datetime import datetime
 from transformers import AutoTokenizer
 from langchain_postgres import PGVector
@@ -17,6 +19,51 @@ from app.utils.logger import get_logger
 from app.utils.load_intents import load_intents
 from app.utils.create_db import create_db_if_not_exists
 logger = get_logger(__name__)
+
+BATCH_SIZE = 16  # có thể chỉnh 8/12/16 tùy server
+
+def _batched(lst, n):
+    for i in range(0, len(lst), n):
+        yield lst[i:i+n]
+
+# --- helper để parse header từ các chunk PDF ---
+_PDF_HEADER_RE = re.compile(
+    r"^\[(?P<src>PDF(?:\s+p\.(?P<page>\d+))?\s*-\s*(?P<section>text|table))\]\s*\n",
+    re.IGNORECASE,
+)
+_TABLE_META_RE = re.compile(r"^\[TABLE_META\](\{.*?\})\s*\n", re.DOTALL)
+
+def _strip_pdf_header_and_meta(text: str):
+    """
+    Nếu chunk bắt đầu bằng header dạng:
+      [PDF p.3 - text]\n...
+      [PDF p.10 - table]\n...
+      [PDF - table]\n...
+    -> Loại header và trích meta (page, section_type).
+    """
+    m = _PDF_HEADER_RE.match(text or "")
+    if not m:
+        return text, None, None
+    page = m.group("page")
+    section = m.group("section")
+    clean = text[m.end():].strip()
+    return clean, (int(page) if page else None), (section.lower() if section else None)
+
+def _pop_table_meta(text: str):
+    """
+    Nếu chunk bắt đầu bằng:
+      [TABLE_META]{...json}\n
+    -> cắt bỏ dòng này và trả ra (clean_text, meta_dict). Ngược lại trả (text, None).
+    """
+    m = _TABLE_META_RE.match(text or "")
+    if not m:
+        return text, None
+    try:
+        meta = json.loads(m.group(1))
+    except Exception:
+        meta = None
+    clean = text[m.end():].strip()
+    return clean, meta
 
 def import_qa_data():
     """Import Q&A data from S3 (prod) or local file (dev) to vector database"""
@@ -93,6 +140,7 @@ def import_qa_data():
                             "question": qa['question'],
                             "answer": qa['answer'],
                             "type": intent,
+                            "source": "xlsx",
                             "tokens": token_count,
                             "created_at": datetime.now().isoformat()
                         })
@@ -100,41 +148,82 @@ def import_qa_data():
                         if (i + 1) % 10 == 0:
                             logger.info(f"Processed {i + 1}/{len(data)} documents")
                         
-                    # Add documents to vector store
-                    logger.info("Adding documents to vector store...")
-                    vector_store.add_texts(
-                        texts=documents,
-                        metadatas=metadatas
-                    )
+                    # # Add documents to vector store
+                    # logger.info("Adding documents to vector store...")
+                    # vector_store.add_texts(
+                    #     texts=documents,
+                    #     metadatas=metadatas
+                    # )
                         
-                    logger.info(f"Successfully imported {len(documents)} Q&A pairs to vector database")
+                    # logger.info(f"Successfully imported {len(documents)} Q&A pairs to vector database")
 
                 elif file_type == ".md":
-                    for i, qa in enumerate(data):
-                        document_content = qa
-
-                        # Count tokens using tokenizer
+                    for i, chunk in enumerate(data):
+                        document_content = chunk
+                        # Count tokens
                         tokens = tokenizer.encode(document_content, add_special_tokens=False)
                         token_count = len(tokens)
 
                         documents.append(document_content)
                         metadatas.append({
                             "type": intent,
+                            "source": "md",
                             "tokens": token_count,
                             "created_at": datetime.now().isoformat()
                         })
 
                         if (i + 1) % 10 == 0:
-                            logger.info(f"Processed {i + 1}/{len(data)} documents")
+                            logger.info(f"Processed {i + 1}/{len(data)} md-chunks")
 
-                     # Add documents to vector store
-                    logger.info("Adding documents to vector store...")
-                    vector_store.add_texts(
-                        texts=documents,
-                        metadatas=metadatas
-                    )
-                        
-                    logger.info(f"Successfully imported {len(documents)} data chunks to vector database")
+                elif file_type == ".pdf":
+                     # data: list[str] các chunk có header [PDF p.X - text/table] và có thể có dòng [TABLE_META]{...}
+                    for i, raw_chunk in enumerate(data):
+                        # 1) cắt header PDF để lấy page/section_type
+                        cleaned, page, section_type = _strip_pdf_header_and_meta(raw_chunk)
+                        document_content = cleaned if cleaned else raw_chunk
+
+                        # 2) nếu có TABLE_META ở đầu, lấy meta + bỏ khỏi nội dung
+                        document_content, table_meta = _pop_table_meta(document_content)
+
+                        # 3) đếm tokens cho nội dung embed
+                        tokens = tokenizer.encode(document_content, add_special_tokens=False)
+                        token_count = len(tokens)
+
+                        # 4) metadata
+                        meta_entry = {
+                            "type": intent,
+                            "source": "pdf",
+                            "page": (table_meta.get("page") if table_meta and table_meta.get("page") is not None else page),
+                            "section_type": section_type,  # 'text' hoặc 'table'
+                            "tokens": token_count,
+                            "created_at": datetime.now().isoformat()
+                        }
+                        if table_meta:
+                            meta_entry.update({
+                                "table_n_rows": table_meta.get("n_rows"),
+                                "table_n_cols": table_meta.get("n_cols"),
+                                "table_columns": table_meta.get("columns"),
+                            })
+
+                        documents.append(document_content)
+                        metadatas.append(meta_entry)
+
+                        if (i + 1) % 10 == 0:
+                            logger.info(f"Processed {i + 1}/{len(data)} pdf-chunks")
+                else:
+                    logger.warning(f"Unsupported file type for {filename}: {file_type}. Skipping.")
+                    continue
+
+                # Add documents to vector store
+                logger.info("Adding documents to vector store in batches...")
+                total = len(documents)
+                added = 0
+                for texts_batch, metas_batch in zip(_batched(documents, BATCH_SIZE), _batched(metadatas, BATCH_SIZE)):
+                    vector_store.add_texts(texts=texts_batch, metadatas=metas_batch)
+                    added += len(texts_batch)
+                    logger.info(f"Added {added}/{total} to vector store")
+
+                logger.info(f"Successfully imported {len(documents)} items to vector database")
 
         
     except Exception as e:
