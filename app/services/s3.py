@@ -87,7 +87,7 @@ class S3Service:
 
                 logger.info(f"Markdown file {filename} loaded")
                 tokenizer = AutoTokenizer.from_pretrained(settings.embedding_model_name, token=settings.hf_token, trust_remote_code=True)
-                splitter = MarkdownTextSplitter.from_huggingface_tokenizer(tokenizer=tokenizer, chunk_size=settings.embedding_max_tokens, chunk_overlap=settings.embedding_max_tokens/5)
+                splitter = MarkdownTextSplitter.from_huggingface_tokenizer(tokenizer=tokenizer, chunk_size=512, chunk_overlap=100)
                 data = splitter.split_text(md_data)
                 logger.info(f"Successfully processed {len(data)} chunks from local file")
                 return data

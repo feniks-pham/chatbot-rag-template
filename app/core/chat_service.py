@@ -146,7 +146,7 @@ class ResponseGenerator:
             logger.error(f"Error generating streaming response: {e}", exc_info=True)
             yield "Xin lỗi, đã có lỗi xảy ra khi xử lý câu hỏi của bạn."
     
-    def _get_vector_context(self, query: str, k: int = 5) -> str:
+    def _get_vector_context(self, query: str, k: int = 10) -> str:
         """Get relevant context from vector database"""
         try:
             # Search for similar documents

@@ -60,6 +60,9 @@ class Settings(BaseSettings):
     # Huggingface
     hf_token: str
 
+    # Evaluation
+    evaluation_llm_api_key: str = ""
+
     # Application
     log_level: str = "INFO"
     log_dir: str = "~/logs/chatbot"
