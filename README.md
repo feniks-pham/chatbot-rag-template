@@ -294,6 +294,44 @@ kubectl apply -f k8s/chatbot-deployment.yaml
 - Verify database schema is initialized
 - Check logs for specific error messages
 
+## Evaluation
+
+You can run the evaluation locally to test the performance of this chatbot with your data.
+
+First, you need an LLM model and fill in the variable EVALUATION_LLM_API_KEY in the .env file to run the evaluation
+
+```.env
+EVALUATION_LLM_API_KEY=your_evaluation_api_key
+```
+
+Note: You should use an OpenAI model in order to prevent some unexpected errors
+
+Our application supports some following metrics below:
+
+- Non RAG and RAG comparision: This metric highlights the chatbot’s performance when providing data and utilizing RAG to operate.
+
+```bash
+python evaluation/rag_and_non_rag.py
+```
+
+- Context Recall: This metric measures how many of the relevant documents were successfully retrieved, higher recall means fewer relevant documents were left out.
+
+```bash
+python evaluation/context_recall.py
+```
+
+- Faithfulness: This metric measures how factually consistent a response is with the retrieved context, higher scores indicating better consistency.
+
+```bash
+python evaluation/faithfulness.py
+```
+
+- Response Relevancy: This metric measures how relevant a response is to the user input, higher scores indicate better alignment with the user input, while lower scores are given if the response is incomplete or includes redundant information.
+
+```bash
+python evaluation/response_relevancy.py
+```
+
 ## Customize your own templates
 
 You can use your own templates and data for this chatbot instead of using our example templates.
@@ -327,3 +365,19 @@ Note: Make sure that your data folder or s3 have all files you put in intents.ya
 - Edit system_prompt.txt file to put your own system prompt for the whole chatbot and make sure that your system prompt including scenario for each type of intent.
 
 - Edit intent_prompt.txt file to put prompts that define user query intents depend on intents in your intents.yaml and rewrite_prompt.txt file to put prompts that rewrite user query to fit the context.
+
+For the evaluation, you can edit evaluation/testcases.json with the following format to input testcases that approriate with your data.
+
+```testcases.json
+{
+  "testcase": [
+    {
+      "id": "query_id",
+      "query": "your_query",
+      "sample answer": "sample_answer_for_your_query" 
+    }
+  ]
+}
+```
+
+
