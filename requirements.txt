@@ -26,3 +26,8 @@ streamlit==1.47.1
 # streamlit-audiorec
 transformers==4.54.0
 uvicorn==0.35.0
+ragas
+rapidfuzz
+pdfplumber
+camelot-py
+tabula-py
