@@ -123,39 +123,66 @@ pip install -r requirements.txt
 
 Remember to fill in all variables for Postgres in .env file first
 
+Start Database
+
 ```bash
-# Start Database
 docker compose -f docker-compose.postgres.yml up -d
-# View Logs
-docker compose -f docker-compose.postgres.yml logs
-# Stop Database
-# docker compose -f docker-compose.postgres.yml down
 ```
+
+View Logs
+
+```bash
+docker compose -f docker-compose.postgres.yml logs
+```
+
+Stop Database
+
+```bash
+docker compose -f docker-compose.postgres.yml down
+```
+
 - OpenSearch
 
 Remember to fill in all variables for OpenSearch in .env file first.
-   
+
+Start Database
+
 ```bash
-# Start Database
 docker compose -f docker-compose.opensearch.yml up -d
-# View Logs
-docker compose -f docker-compose.opensearch.yml logs
-# Stop Database
-# docker compose -f docker-compose.opensearch.yml down
+```
+
+View Logs
+
+```bash
+docker compose -f docker-compose.opensearch.yml 
+```
+
+Stop Database
+
+```bash
+docker compose -f docker-compose.opensearch.yml down
 ```
 
 4. **Start the application**
 
 Make sure your .env file have all required variables set first.
 
+Start application
 ```bash
-# Start application
 docker compose -f docker-compose.dev.yml up -d
-# View logs
-# docker ps
-# docker logs -f <Container ID>
-# Cleaned up when finished
-#docker compose -f docker-compose.dev.yml down
+```
+
+View logs
+
+```bash
+docker ps
+docker logs -f <Container ID>
+```
+
+Cleaned up when finished
+
+```bash
+docker compose -f docker-compose.dev.yml down
 ```
 ****
 ### Running with Kubernetes
@@ -241,36 +268,57 @@ GEMINI_TTS_API_KEY: "your_gemini_tts_api_key"
 
 First, you have to create the configmap for your templates folder to mount it into your application deployed on k8s.
 
+Create configmap for templates
+
 ```bash
-# Create configmap for templates
 kubectl create configmap templates-config --from-file=templates/
-# Clean up when finished
-# kubectl delete configmap templates-config
+```
+
+Clean up when finished
+
+```bash
+kubectl delete configmap templates-config
 ```
 
 Note: You need to run this command in the same location where you keep your templates folder
 
 Then, you have to create configmap and secret for your env variables.
 
+
+Load all .env variables into env
 ```bash
-# Load all .env variables into env
 export $(grep -v '^#' .env | xargs) 
-# Create configmap and secret
+```
+
+Create configmap and secret
+```bash
 envsubst < k8s/chatbot-configmap.yaml | kubectl apply -f -
-# Clean up when finished
-# kubectl delete -f k8s/chatbot-configmap.yaml
+```
+
+Clean up when finished
+
+```bash
+kubectl delete -f k8s/chatbot-configmap.yaml
 ```
 
 Finally, you can deploy the application.
 
+Deploy the application
 ```bash
-# Deploy the application
 kubectl apply -f k8s/chatbot-deployment.yaml
-# View Logs
-# kubectl get pods
-# kubectl logs -f <Pod Name>
-# Clean up when finish
-# kubectl delete -f k8s/chatbot-deployment.yaml
+```
+
+View Logs
+
+```bash
+kubectl get pods
+kubectl logs -f <Pod Name>
+```
+
+Clean up when finish
+
+```bash
+kubectl delete -f k8s/chatbot-deployment.yaml
 ```
 
 ## Troubleshooting
