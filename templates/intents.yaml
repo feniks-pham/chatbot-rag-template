@@ -16,3 +16,15 @@ product:
   data_source:
     type: crawl
     web_url: https://thiencaphe.trungnguyenlegendcafe.net/san-pham/
+
+isa:
+  name: Kiến trúc tập lệnh
+  data_source:
+    type: vector_db
+    file: data.md
+
+course_syllabus:
+  name: Đề cương học phần
+  data_source:
+    type: vector_db
+    file: data.pdf
