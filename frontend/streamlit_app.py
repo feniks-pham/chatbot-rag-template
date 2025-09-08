@@ -150,7 +150,7 @@ def main():
 
     st.set_page_config(
         page_title="VNG Chatbot",
-        page_icon="☕",
+        page_icon="🤖",
         layout="wide"
     )
     
@@ -159,7 +159,7 @@ def main():
         content, button_key = st.session_state.current_audio
         play_audio(content, button_key)
     
-    st.title("☕ VNG Chatbot")
+    st.title("🤖 VNG Chatbot")
     # st.markdown("Hỏi tôi về thiền cafe, cà phê triết đạo, địa chỉ trải nghiệm thiền cafe, và sản phẩm của Trung Nguyên Legend!")
     
     # Initialize session
