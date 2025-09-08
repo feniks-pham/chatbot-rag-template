@@ -1,30 +1,13 @@
-zen_cafe:
-  name: Thiền Cà Phê
+vks_overview:
+  name: VKS là gì
   default: Yes # intent trả về mặc định khi không xác định được intent của query
   data_source:
     type: vector_db
-    file: data.xlsx
+    file: vks-la-gi 1.md
 
-location:
-  name: Địa điểm trải nghiệm
-  data_source:
-    type: crawl
-    web_url: https://thiencaphe.trungnguyenlegendcafe.net/
-
-product:
-  name: Sản phẩm
-  data_source:
-    type: crawl
-    web_url: https://thiencaphe.trungnguyenlegendcafe.net/san-pham/
-
-isa:
-  name: Kiến trúc tập lệnh
+vks_terraform:
+  name: Sử dụng VKS với Terraform
   data_source:
     type: vector_db
-    file: data.md
+    file: su-dung-vks-voi-terraform.md
 
-course_syllabus:
-  name: Đề cương học phần
-  data_source:
-    type: vector_db
-    file: data.pdf

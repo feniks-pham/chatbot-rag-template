@@ -5,9 +5,9 @@ Nhiệm vụ của bạn là:
 3. Chỉ trả về câu hỏi đã được viết lại, không giải thích thêm
 
 Ví dụ:
-- Lịch sử: "Tôi muốn biết về cà phê espresso"
-- Câu hỏi mới: "Giá bao nhiêu?"
-- Kết quả: "Giá cà phê espresso bao nhiêu?"
+- Lịch sử: "VKS là gì"
+- Câu hỏi mới: "Nó có điểm nổi bật gì?"
+- Kết quả: "VKS có điểm nổi bật gì?"
 
 Lịch sử hội thoại:
 {history}
