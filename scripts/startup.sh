@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Startup script for Trung Nguyen Chatbot
-echo "🚀 Starting Trung Nguyen Chatbot..."
+# Startup script for VNG Chatbot
+echo "🚀 Starting VNG Chatbot..."
 
 # Colors for output
 RED='\033[0;31m'
@@ -34,24 +34,20 @@ import os
 sys.path.insert(0, '/app')
 os.environ.setdefault('PYTHONPATH', '/app')
 from app.config.settings import settings
+from app.utils.create_db import create_db_if_not_exists
 import psycopg2
 try:
     if settings.is_postgres:
+        create_db_if_not_exists(settings.database_url)
         conn = psycopg2.connect(settings.database_url)
         conn.close()
         print('Postgres is ready!')
         exit(0)
     elif settings.is_opensearch:
         from opensearchpy import OpenSearch
-        from urllib.parse import urlparse
-        parsed = urlparse(settings.opensearch_url)
-        host = parsed.hostname        
-        port = parsed.port              
-        username = parsed.username      
-        password = parsed.password
         client = OpenSearch(
-            hosts=[{'host': host, 'port': port}], 
-            http_auth=(username, password),
+            hosts=[settings.opensearch_url],
+            http_auth=(settings.opensearch_username, settings.opensearch_password),
             use_ssl=True,
             verify_certs=False
         )
@@ -118,7 +114,7 @@ fi
 
 # Step 4: Start the application
 print_status "Starting FastAPI application..."
-print_status "🚀 Trung Nguyen Chatbot is ready!"
+print_status "🚀 VNG Chatbot is ready!"
 
 # Use exec to replace the shell process with uvicorn
 exec uvicorn main:app --host 0.0.0.0 --port 8000 --reload 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Development Environment Setup Script
-echo "🚀 Setting up Trung Nguyen Chatbot - Development Environment"
+echo "🚀 Setting up VNG Chatbot - Development Environment"
 
 # Colors for output
 RED='\033[0;31m'

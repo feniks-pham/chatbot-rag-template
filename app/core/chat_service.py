@@ -177,33 +177,31 @@ class ChatService:
     def initialize_vector_store(self, intent):
         """Initialize vector store - called during startup"""
         logger.info("Initializing vector store...")
-        if self.vector_store is None:
-            try:
-                if settings.is_postgres:
-                    self.vector_store = PGVector(
-                        embeddings=self.embeddings,
-                        connection=settings.database_url,
-                        collection_name=intent,
-                        use_jsonb=True,
-                    )
-                else:
-                    self.vector_store = OpenSearchVectorSearch(
-                        opensearch_url=settings.opensearch_url,
-                        index_name=intent,
-                        embedding_function=self.embeddings,
-                        verify_certs=False
-                    )
-                self.response_generator = ResponseGenerator(
-                    self.llm_service, 
-                    self.embeddings, 
-                    self.vector_store
+        try:
+            if settings.is_postgres:
+                self.vector_store = PGVector(
+                    embeddings=self.embeddings,
+                    connection=settings.database_url,
+                    collection_name=intent,
+                    use_jsonb=True,
                 )
-                logger.info("Vector store initialized successfully")
-            except Exception as e:
-                logger.error(f"Failed to initialize vector store: {e}", exc_info=True)
-                raise
-        else:
-            logger.info("Vector store already initialized")
+            else:
+                self.vector_store = OpenSearchVectorSearch(
+                    opensearch_url=settings.opensearch_url,
+                    index_name=intent,
+                    embedding_function=self.embeddings,
+                    http_auth=(settings.opensearch_username, settings.opensearch_password),
+                    verify_certs=False
+                )
+            self.response_generator = ResponseGenerator(
+                self.llm_service, 
+                self.embeddings, 
+                self.vector_store
+            )
+            logger.info("Vector store initialized successfully")
+        except Exception as e:
+            logger.error(f"Failed to initialize vector store: {e}", exc_info=True)
+            raise
     
     def get_chat_history(self, db: Session, session_id: str) -> List[Dict[str, str]]:
         """Get chat history for a session"""

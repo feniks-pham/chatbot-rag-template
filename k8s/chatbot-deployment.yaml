@@ -1,5 +1,5 @@
 # =============================================================================
-# TRUNG NGUYEN CHATBOT - KUBERNETES DEPLOYMENT
+# VNG CHATBOT - KUBERNETES DEPLOYMENT
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -11,7 +11,7 @@ kind: Deployment
 metadata:
   name: chatbot-backend
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: chatbot-backend
@@ -43,6 +43,8 @@ spec:
               mountPath: /app/logs
             - name: templates
               mountPath: /app/templates
+            - name: data
+              mountPath: /app/data
           # livenessProbe:
           #   httpGet:
           #     path: /health
@@ -61,13 +63,16 @@ spec:
         - name: templates
           configMap:
             name: templates-config
+        - name: data
+          configMap:
+            name: data-config
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: chatbot-frontend
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: chatbot-frontend

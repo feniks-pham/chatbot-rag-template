@@ -54,6 +54,8 @@ metadata:
 type: Opaque
 stringData: # Use stringData instead of data to avoid base64 encoding
   DATABASE_URL: "${DATABASE_URL}"
+  OPENSEARCH_USERNAME: "${OPENSEARCH_USERNAME}"
+  OPENSEARCH_PASSWORD: "${OPENSEARCH_PASSWORD}"
   OPENSEARCH_URL: "${OPENSEARCH_URL}"
   LLM_API_URL: "${LLM_API_URL}"
   LLM_API_KEY: "${LLM_API_KEY}"

@@ -19,6 +19,7 @@ def create_db_if_not_exists(db_url: str):
         host=host,
         port=port
     )
+
     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     cur = conn.cursor()
 

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Setup script for Trung Nguyen Chatbot
+# Setup script for VNG Chatbot
 
-echo "Setting up Trung Nguyen Legend Cafe Chatbot..."
+echo "Setting up VNG Chatbot..."
 
 # Check if Python is installed
 if ! command -v python3.13 &> /dev/null; then

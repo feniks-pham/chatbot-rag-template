@@ -6,15 +6,15 @@ from urllib.parse import urlparse
 from app.config.settings import settings
 
 def get_opensearch_db():
-    parsed = urlparse(settings.opensearch_url)
-    host = parsed.hostname        
-    port = parsed.port              
-    username = parsed.username      
-    password = parsed.password      
+    # parsed = urlparse(settings.opensearch_url)
+    # host = parsed.hostname        
+    # port = parsed.port              
+    # username = parsed.username      
+    # password = parsed.password      
 
     client = OpenSearch(
-        hosts=[{"host": host, "port": port}],
-        http_auth=(username, password),
+        hosts=[settings.opensearch_url],
+        http_auth=(settings.opensearch_username, settings.opensearch_password),
         use_ssl=True,
         verify_certs=False
     )
@@ -24,15 +24,15 @@ def get_opensearch_db():
         client.close()
 
 def create_indices():
-    parsed = urlparse(settings.opensearch_url)
-    host = parsed.hostname        
-    port = parsed.port              
-    username = parsed.username      
-    password = parsed.password      
+    # parsed = urlparse(settings.opensearch_url)
+    # host = parsed.hostname        
+    # port = parsed.port              
+    # username = parsed.username      
+    # password = parsed.password      
 
     client = OpenSearch(
-        hosts=[{"host": host, "port": port}],
-        http_auth=(username, password),
+        hosts=[settings.opensearch_url],
+        http_auth=(settings.opensearch_username, settings.opensearch_password),
         use_ssl=True,
         verify_certs=False
     )

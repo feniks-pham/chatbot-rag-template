@@ -3,7 +3,7 @@ vks_overview:
   default: Yes # intent trả về mặc định khi không xác định được intent của query
   data_source:
     type: vector_db
-    file: vks-la-gi 1.md
+    file: vks-la-gi.md
 
 vks_terraform:
   name: Sử dụng VKS với Terraform

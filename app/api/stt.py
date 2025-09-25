@@ -1,31 +1,52 @@
 import os
-import tempfile
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from app.services.stt import STTService
 from app.utils.logger import get_logger
 
-router = APIRouter()
 logger = get_logger(__name__)
+router = APIRouter()
 stt_service = STTService()
 
 @router.post("/stt-zalo")
-async def speech_to_text(audio_file: UploadFile = File(...)):
+async def speech_to_text(
+    audio_file: UploadFile = File(..., description="Audio file (e.g., WAV)"),
+    encoding_type: str = Form("wav"),  # "wav" theo mẫu API của VNG Cloud
+):
+    """
+    Convert speech (audio file) to text using Zalo/VNG Cloud STT (sync).
+    Trả về: {"text": "..."}
+    """
     try:
-        # Save temp file
-        suffix = f".{audio_file.filename.split('.')[-1]}"
-        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-            contents = await audio_file.read()
-            tmp.write(contents)
-            tmp_path = tmp.name
+        # Đọc bytes từ UploadFile
+        content = await audio_file.read()
+        if not content:
+            raise HTTPException(status_code=400, detail="Empty audio file.")
 
-        # Call STT service
-        transcript = await stt_service.speech_to_text(tmp_path)
+        filename = audio_file.filename or f"upload.{encoding_type}"
+        content_type = audio_file.content_type or "audio/wav"
 
-        # Delete temp file
-        os.remove(tmp_path)
+        logger.info(
+            f"STT request: filename='{filename}', content_type='{content_type}', "
+            f"encoding_type='{encoding_type}', size={len(content)} bytes"
+        )
 
-        return {"transcript": transcript}
+        # Gọi service (dùng bytes để không phải ghi ra file tạm)
+        transcript = await stt_service.transcribe_bytes(
+            content,
+            filename=filename,
+            encoding_type=encoding_type,
+            content_type=content_type,
+        )
 
+        return {"text": transcript}
+
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"STT error: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Speech-to-text failed")
+    finally:
+        try:
+            await audio_file.close()
+        except Exception:
+            pass

@@ -48,8 +48,8 @@ async def lifespan(_: FastAPI):  # Use underscore to indicate unused parameter
         logger.error(f"Shutdown error: {e}", exc_info=True)
 
 app = FastAPI(
-    title="Trung Nguyen Legend Cafe Chatbot",
-    description="RAG chatbot for Trung Nguyen Legend Cafe",
+    title="VNG Chatbot",
+    description="RAG chatbot for VNG",
     version="1.0.0",
     lifespan=lifespan
 )
@@ -71,7 +71,7 @@ app.include_router(tts.router, prefix="/api/v1", tags=["tts"])
 @app.get("/")
 async def root():
     logger.info("Root endpoint accessed")
-    return {"message": "Trung Nguyen Legend Cafe Chatbot API"}
+    return {"message": "VNG Chatbot API"}
 
 @app.get("/health")
 async def health_check():

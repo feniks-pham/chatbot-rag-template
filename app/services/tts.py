@@ -8,11 +8,6 @@ from typing import List
 import httpx
 import aiofiles
 
-# from google import genai
-# from google.genai import types
-# from scipy.io.wavfile import write as write_wav
-# import wave
-
 from app.config.settings import settings
 from app.utils.logger import get_logger
 

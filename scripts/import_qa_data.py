@@ -118,6 +118,7 @@ def import_qa_data():
                         opensearch_url=settings.opensearch_url,
                         index_name=intent,
                         embedding_function=embeddings,
+                        http_auth=(settings.opensearch_username, settings.opensearch_password),
                         verify_certs=False
                     )
                     

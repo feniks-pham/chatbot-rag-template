@@ -13,7 +13,8 @@ class Settings(BaseSettings):
     database_url: str = ""
 
     # Database (opensearch)
-    opensearch_initial_admin_password: str = ""
+    opensearch_username: str = ""
+    opensearch_password: str = ""
     opensearch_url: str = ""
     
     # S3 (only for prod)
@@ -28,16 +29,16 @@ class Settings(BaseSettings):
     llm_model: str = "gpt-4o-mini"
 
     # TTS
-    tts_api_url: str
-    tts_api_key: str
+    tts_api_url: str = ""
+    tts_api_key: str = ""
     tts_model: str = "zalo-tts-vi"
     tts_speaker_id: int = 1
     tts_speed: float = 1.0
     tts_encode_type: int = 1
 
     # Gemini TTS
-    gemini_tts_api_url: str
-    gemini_tts_api_key: str
+    gemini_tts_api_url: str = ""
+    gemini_tts_api_key: str = ""
     gemini_tts_voice_language_code: str = "vi-VN"
     gemini_tts_voice_name: str = "vi-VN-Standard-C"
     gemini_tts_audio_encoding: str = "MP3"
@@ -46,10 +47,11 @@ class Settings(BaseSettings):
     gemini_tts_sample_rate_hertz: int = 24000
 
     # STT
-    # stt_api_url: str
-    # stt_api_key: str
+    # stt_api_url: str = ""
+    # stt_api_key: str = ""
     # stt_model: str = "zalo-stt-vi"
-    # stt_encoding_type: str = "mp3"
+    # stt_encoding_type: str = "wav"
+    # stt_timeout: float = 60.0
 
     # Embedding
     embedding_api_url: str
